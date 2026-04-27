@@ -30,6 +30,9 @@ jobs:
       - name: Install Composer dependencies
         run: docker compose exec -T php composer install --no-interaction --prefer-dist
 
+      - name: Install Doctrine ORM pack
+        run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist
+
       - name: Wait for PostgreSQL
         shell: bash
         run: |
