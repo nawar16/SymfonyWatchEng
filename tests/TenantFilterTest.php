@@ -12,15 +12,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 class TenantFilterTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;
 
     private TenantContext $tenantContext;
-
-    private KernelInterface $kernel;
 
     protected function setUp(): void
     {
@@ -29,7 +26,6 @@ class TenantFilterTest extends KernelTestCase
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->tenantContext = $container->get(TenantContext::class);
-        $this->kernel = self::$kernel;
 
         $schemaTool = new SchemaTool($this->entityManager);
         $metadata = [
@@ -74,7 +70,7 @@ class TenantFilterTest extends KernelTestCase
     {
         $dispatcher = static::getContainer()->get('event_dispatcher');
         $request = Request::create('http://tenant1.test/');
-        $event = new RequestEvent($this->kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+        $event = new RequestEvent(self::$kernel, $request, HttpKernelInterface::MAIN_REQUEST);
 
         $dispatcher->dispatch($event);
 
