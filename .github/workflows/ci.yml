@@ -17,7 +17,7 @@ jobs:
         run: |
           cat <<'EOF' > .env.local
           APP_ENV=dev
-          DEFAULT_URI=http://nginx
+          DEFAULT_URI=http://nginx     
           DATABASE_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           SESSION_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           REDIS_URL="redis://redis:6379"
