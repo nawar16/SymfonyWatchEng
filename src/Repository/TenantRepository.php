@@ -15,4 +15,23 @@ class TenantRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Tenant::class);
     }
+
+    public function findOneByHostname(string $hostname): ?Tenant
+    {
+        $normalizedHost = mb_strtolower($hostname);
+        $candidates = [$normalizedHost];
+
+        if (str_contains($normalizedHost, '.')) {
+            $candidates[] = explode('.', $normalizedHost)[0];
+        }
+
+        $candidates = array_values(array_unique($candidates));
+
+        return $this->createQueryBuilder('tenant')
+            ->andWhere('tenant.subdomain IN (:candidates)')
+            ->setParameter('candidates', $candidates)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
