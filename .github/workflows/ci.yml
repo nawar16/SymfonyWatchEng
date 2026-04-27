@@ -58,12 +58,12 @@ jobs:
         run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
 
       - name: Create test database
-        run: docker compose exec -T -e APP_ENV=test php php bin/console doctrine:database:create --if-not-exists --env=test
+        run: docker compose exec -T -e APP_ENV=test -e TEST_DATABASE_URL='postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8' php php bin/console doctrine:database:create --if-not-exists --env=test
 
       - name: Run functional tests
         env:
           APP_ENV: test
-        run: docker compose exec -T -e APP_ENV=test php php bin/phpunit
+        run: docker compose exec -T -e APP_ENV=test -e TEST_DATABASE_URL='postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8' php php vendor/bin/phpunit
 
       - name: Shut down services
         if: always()

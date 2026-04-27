@@ -4,6 +4,7 @@ namespace App\Tests;
 
 use App\Entity\Tenant;
 use App\Entity\User;
+use App\EventListener\TenantListener;
 use App\Tenant\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -17,6 +18,8 @@ class TenantFilterTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;
 
+    private TenantListener $tenantListener;
+
     private TenantContext $tenantContext;
 
     protected function setUp(): void
@@ -25,6 +28,7 @@ class TenantFilterTest extends KernelTestCase
 
         $container = static::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        $this->tenantListener = $container->get(TenantListener::class);
         $this->tenantContext = $container->get(TenantContext::class);
 
         $schemaTool = new SchemaTool($this->entityManager);
@@ -68,11 +72,10 @@ class TenantFilterTest extends KernelTestCase
 
     public function testTenantContextIsResolvedFromHostname(): void
     {
-        $dispatcher = static::getContainer()->get('event_dispatcher');
         $request = Request::create('http://tenant1.test/');
         $event = new RequestEvent(self::$kernel, $request, HttpKernelInterface::MAIN_REQUEST);
 
-        $dispatcher->dispatch($event);
+        $this->tenantListener->onKernelRequest($event);
 
         $tenant = $this->tenantContext->getTenant();
 
