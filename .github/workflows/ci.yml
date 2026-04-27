@@ -18,20 +18,14 @@ jobs:
           cat <<'EOF' > .env.local
           APP_ENV=dev
           DEFAULT_URI=http://nginx
-          DATABASE_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres"
-          SESSION_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres"
+          DATABASE_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
+          SESSION_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           REDIS_URL="redis://redis:6379"
           MAILER_DSN="smtp://mailpit:1025"
           EOF
 
       - name: Start Docker services
         run: docker compose up -d --build
-
-      - name: Install Composer dependencies
-        run: docker compose exec -T php composer install --no-interaction --prefer-dist
-
-      - name: Install Doctrine ORM pack
-        run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist
 
       - name: Wait for PostgreSQL
         shell: bash
@@ -44,6 +38,18 @@ jobs:
           done
           echo "PostgreSQL did not become ready in time."
           exit 1
+
+      - name: Verify raw PostgreSQL connection
+        run: docker compose exec -T postgres psql -U 'postgres.ilcgyhdppafydikazomh' -d postgres -c 'SELECT 1;'
+
+      - name: Mark repository as safe for Git inside container
+        run: docker compose exec -T php git config --global --add safe.directory /var/www/html
+
+      - name: Install Composer dependencies
+        run: docker compose exec -T php composer install --no-interaction --prefer-dist
+
+      - name: Install Doctrine ORM pack
+        run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist --no-scripts
 
       - name: Verify Doctrine database connectivity
         run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
