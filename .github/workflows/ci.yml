@@ -51,8 +51,19 @@ jobs:
       - name: Install Doctrine ORM pack
         run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist --no-scripts
 
+      - name: Install Symfony test tooling
+        run: docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --prefer-dist --no-scripts
+
       - name: Verify Doctrine database connectivity
         run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
+
+      - name: Create test database
+        run: docker compose exec -T -e APP_ENV=test php php bin/console doctrine:database:create --if-not-exists --env=test
+
+      - name: Run functional tests
+        env:
+          APP_ENV: test
+        run: docker compose exec -T -e APP_ENV=test php php bin/phpunit
 
       - name: Shut down services
         if: always()
