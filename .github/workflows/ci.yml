@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker-compose-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create CI environment overrides
+        shell: bash
+        run: |
+          cat <<'EOF' > .env.local
+          APP_ENV=dev
+          DEFAULT_URI=http://nginx
+          DATABASE_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres"
+          SESSION_URL="postgresql://postgres.ilcgyhdppafydikazomh:trtiFaUJoYBGrNsC@postgres:5432/postgres"
+          REDIS_URL="redis://redis:6379"
+          MAILER_DSN="smtp://mailpit:1025"
+          EOF
+
+      - name: Start Docker services
+        run: docker compose up -d --build
+
+      - name: Install Composer dependencies
+        run: docker compose exec -T php composer install --no-interaction --prefer-dist
+
+      - name: Wait for PostgreSQL
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if docker compose exec -T postgres pg_isready -U 'postgres.ilcgyhdppafydikazomh' -d postgres; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "PostgreSQL did not become ready in time."
+          exit 1
+
+      - name: Verify Doctrine database connectivity
+        run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
+
+      - name: Shut down services
+        if: always()
+        run: docker compose down -v
