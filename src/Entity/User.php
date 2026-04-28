@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ORM\UniqueConstraint(name: 'uniq_user_email', columns: ['email'])]
+#[ORM\UniqueConstraint(name: 'uniq_user_tenant_email', columns: ['tenant_id', 'email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, TenantScopedInterface
 {
     #[ORM\Id]

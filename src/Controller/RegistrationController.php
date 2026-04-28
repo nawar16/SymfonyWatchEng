@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Tenant\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +20,7 @@ class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         TenantContext $tenantContext,
+        UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
     ): JsonResponse {
         $payload = json_decode($request->getContent(), true);
@@ -44,10 +46,10 @@ class RegistrationController extends AbstractController
             return $this->json(['error' => 'No tenant resolved for this request.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+        $existingUser = $userRepository->findOneByEmailAndTenant($email, $tenant);
 
         if ($existingUser !== null) {
-            return $this->json(['error' => 'Email is already registered.'], Response::HTTP_CONFLICT);
+            return $this->json(['error' => 'Email is already registered for this tenant.'], Response::HTTP_CONFLICT);
         }
 
         $user = (new User())
