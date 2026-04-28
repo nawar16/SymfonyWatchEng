@@ -12,20 +12,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create CI environment overrides
+      - name: Create CI environment files
         shell: bash
         run: |
           echo "APP_ENV=dev" > .env
           echo "APP_SECRET=67d1217409d5" >> .env
           echo "DATABASE_URL=postgresql://dummy:dummy@postgres:5432/postgres" >> .env
 
+          mkdir -p config/jwt
+
           cat <<'EOF' > .env.local
           APP_ENV=dev
-          DEFAULT_URI=http://nginx     
           DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
-          SESSION_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
-          REDIS_URL="redis://redis:6379"
-          MAILER_DSN="smtp://mailpit:1025"
+          EOF
+
+          cat <<'EOF' > .env.test.local
+          APP_ENV=test
+          JWT_PASSPHRASE=${{ secrets.JWT_PASSPHRASE }}
+          JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
+          JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
+          DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           EOF
 
       - name: Start Docker services
@@ -40,37 +46,29 @@ jobs:
             fi
             sleep 2
           done
-          echo "PostgreSQL did not become ready in time."
           exit 1
 
-      - name: Verify raw PostgreSQL connection
-        run: docker compose exec -T postgres psql -U 'postgres.${{ secrets.DB_USER }}' -d postgres -c 'SELECT 1;'
+      - name: Install Dependencies
+        run: |
+          docker compose exec -T php git config --global --add safe.directory /var/www/html
+          docker compose exec -T php composer install --no-interaction --prefer-dist --no-scripts
+          docker compose exec -T php composer require symfony/orm-pack lexik/jwt-authentication-bundle --no-interaction --no-scripts
+          docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --no-scripts
 
-      - name: Mark repository as safe for Git inside container
-        run: docker compose exec -T php git config --global --add safe.directory /var/www/html
+      - name: Generate JWT Keys
+        run: |
+          docker compose exec -T \
+            -e JWT_PASSPHRASE="${{ secrets.JWT_PASSPHRASE }}" \
+            -e JWT_SECRET_KEY="config/jwt/private.pem" \
+            -e JWT_PUBLIC_KEY="config/jwt/public.pem" \
+            php php bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
+          docker compose exec -T php chown -R www-data:www-data config/jwt
 
-      - name: Install Composer dependencies
-        run: docker compose exec -T php composer install --no-interaction --prefer-dist  --no-scripts
-
-      - name: Install Doctrine ORM pack
-        run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist --no-scripts
-
-      - name: Install Lexik JWT bundle
-        run: docker compose exec -T php composer require lexik/jwt-authentication-bundle --no-interaction --prefer-dist --no-scripts
-
-      - name: Install Symfony test tooling
-        run: docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --prefer-dist --no-scripts
-
-      - name: Verify Doctrine database connectivity
-        run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
-
-      - name: Create test database
-        run: docker compose exec -T -e APP_ENV=test -e TEST_DATABASE_URL='postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8' php php bin/console doctrine:database:create --if-not-exists --env=test
-
-      - name: Run functional tests
-        env:
-          APP_ENV: test
-        run: docker compose exec -T -e APP_ENV=test -e TEST_DATABASE_URL='postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8' php php vendor/bin/phpunit
+      - name: Setup Database & Run Tests
+        run: |
+          docker compose exec -T -e APP_ENV=test php php bin/console doctrine:database:create --if-not-exists
+          docker compose exec -T -e APP_ENV=test php php bin/console doctrine:schema:create
+          docker compose exec -T -e APP_ENV=test php php vendor/bin/phpunit
 
       - name: Shut down services
         if: always()
