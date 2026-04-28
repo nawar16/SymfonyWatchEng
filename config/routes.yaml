@@ -8,4 +8,12 @@
 #   bin/console debug:router
 
 controllers:
-    resource: routing.controllers
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+api_register:
+    path: /api/register
+    controller: App\Controller\RegistrationController::__invoke
+    methods: [POST]

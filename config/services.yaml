@@ -18,6 +18,24 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/Controller/'
+
+    App\Controller\:
+        resource: '../src/Controller/'
+        public: true
+        autowire: true
+        autoconfigure: true
+        tags: ['controller.service_arguments']
+
+    App\Controller\RegistrationController:
+        public: true
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+            $tenantContext: '@App\Tenant\TenantContext'
+            $userRepository: '@App\Repository\UserRepository'
+            $passwordHasher: '@security.user_password_hasher'
+        tags: ['controller.service_arguments']
 
     App\EventListener\TenantListener:
         autowire: true

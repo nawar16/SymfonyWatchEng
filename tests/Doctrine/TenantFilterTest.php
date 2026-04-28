@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\Doctrine;
 
 use App\Entity\Tenant;
 use App\Entity\User;
@@ -67,7 +67,7 @@ class TenantFilterTest extends KernelTestCase
             $filters->disable('tenant');
         }
 
-        $this->tenantContext->setTenant(null);
+        $this->tenantContext->setCurrentTenant(null);
     }
 
     public function testTenantContextIsResolvedFromHostname(): void
@@ -77,7 +77,7 @@ class TenantFilterTest extends KernelTestCase
 
         $this->tenantListener->onKernelRequest($event);
 
-        $tenant = $this->tenantContext->getTenant();
+        $tenant = $this->tenantContext->getCurrentTenant();
 
         self::assertNotNull($tenant);
         self::assertSame('tenant1.test', $tenant->getSubdomain());
