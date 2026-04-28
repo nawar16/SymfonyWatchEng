@@ -55,14 +55,28 @@ jobs:
       - name: Install Doctrine ORM pack
         run: docker compose exec -T php composer require symfony/orm-pack --no-interaction --prefer-dist --no-scripts
 
+      - name: Install Lexik JWT bundle
+        run: docker compose exec -T php composer require lexik/jwt-authentication-bundle --no-interaction --prefer-dist --no-scripts
+
       - name: Install Symfony test tooling
         run: docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --prefer-dist --no-scripts
+
+      - name: Generate JWT keypair
+        run: |
+          docker compose exec -T php mkdir -p config/jwt
+          docker compose exec -T -e JWT_PASSPHRASE="${{ secrets.JWT_PASSPHRASE }}" php php bin/console lexik:jwt:generate-keypair --skip-if-exists --overwrite
 
       - name: Verify Doctrine database connectivity
         run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
 
       - name: Create test database
         run: docker compose exec -T -e APP_ENV=test -e TEST_DATABASE_URL='postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8' php php bin/console doctrine:database:create --if-not-exists --env=test
+
+      - name: Generate JWT Keys
+        run: |
+          mkdir -p config/jwt
+          echo "${{ secrets.JWT_PASSPHRASE }}" > config/jwt/passphrase.txt
+          php bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
 
       - name: Run functional tests
         env:

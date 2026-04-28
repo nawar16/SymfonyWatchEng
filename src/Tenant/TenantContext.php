@@ -8,14 +8,24 @@ class TenantContext
 {
     private ?Tenant $tenant = null;
 
-    public function getTenant(): ?Tenant
+    public function getCurrentTenant(): ?Tenant
     {
         return $this->tenant;
     }
 
-    public function setTenant(?Tenant $tenant): void
+    public function getTenant(): ?Tenant
+    {
+        return $this->getCurrentTenant();
+    }
+
+    public function setCurrentTenant(?Tenant $tenant): void
     {
         $this->tenant = $tenant;
+    }
+
+    public function setTenant(?Tenant $tenant): void
+    {
+        $this->setCurrentTenant($tenant);
     }
 
     public function hasTenant(): bool
