@@ -61,11 +61,6 @@ jobs:
       - name: Install Symfony test tooling
         run: docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --prefer-dist --no-scripts
 
-      - name: Generate JWT keypair
-        run: |
-          docker compose exec -T php mkdir -p config/jwt
-          docker compose exec -T -e JWT_PASSPHRASE="${{ secrets.JWT_PASSPHRASE }}" php php bin/console lexik:jwt:generate-keypair --skip-if-exists --overwrite
-
       - name: Verify Doctrine database connectivity
         run: docker compose exec -T php php bin/console doctrine:database:create --if-not-exists
 
