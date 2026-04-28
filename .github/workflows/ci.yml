@@ -32,6 +32,8 @@ jobs:
           JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
           JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
           DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
+          TEST_DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
+    
           EOF
 
       - name: Start Docker services
