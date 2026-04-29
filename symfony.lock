@@ -116,5 +116,11 @@
     },
     "symfony/security-bundle": {
         "version": "v7.4.8"
+    },
+    "symfony/twig-bundle": {
+        "version": "v7.4.8"
+    },
+    "symfony/web-profiler-bundle": {
+        "version": "v7.4.8"
     }
 }
