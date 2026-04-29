@@ -63,7 +63,7 @@ onMounted(load);
       <article class="info-card wide">
         <span>Access model</span>
         <strong>Tenant context active</strong>
-        <p>Requests are authenticated with a JWT and resolved against the current tenant host.</p>
+        <p>TODO: here I should add the functionality of testing websites</p>
       </article>
     </div>
   </section>

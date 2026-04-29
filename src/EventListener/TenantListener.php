@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-#[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest')]
+#[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest', priority: 100)]
 class TenantListener
 {
     public function __construct(
@@ -29,7 +29,7 @@ class TenantListener
         }
 
         $request = $event->getRequest();
-        $host = mb_strtolower($request->getHost());
+        $host = mb_strtolower($this->resolveRequestHost($request));
         $subdomain = $this->extractSubdomain($host);
 
         if ($subdomain === null) {
@@ -64,8 +64,27 @@ class TenantListener
         $request->attributes->set('tenant_subdomain', $subdomain);
     }
 
+    private function resolveRequestHost(\Symfony\Component\HttpFoundation\Request $request): string
+    {
+        $forwardedHost = $request->headers->get('x-forwarded-host');
+
+        if (is_string($forwardedHost) && $forwardedHost !== '') {
+            // Keep the first host if multiple proxies appended values.
+            $hosts = explode(',', $forwardedHost);
+            $firstHost = trim($hosts[0] ?? '');
+
+            if ($firstHost !== '') {
+                return $firstHost;
+            }
+        }
+
+        return $request->getHttpHost();
+    }
+
     private function extractSubdomain(string $host): ?string
     {
+        $host = trim($host);
+        $host = preg_replace('/:\d+$/', '', $host) ?? $host;
         $host = trim($host, '[]');
 
         if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {

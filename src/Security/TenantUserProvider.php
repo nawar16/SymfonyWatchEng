@@ -28,12 +28,23 @@ class TenantUserProvider implements UserProviderInterface, PasswordUpgraderInter
             throw new UserNotFoundException('No tenant resolved for this request.');
         }
 
+        $em = $this->userRepository->getEntityManager();
+        $filters = $em->getFilters();
+        $filterEnabled = $filters->isEnabled('tenant');
+
+        if ($filterEnabled) {
+            $filters->disable('tenant');
+        }
+
         $user = $this->userRepository->findOneByEmailAndTenant($identifier, $tenant);
+
+        if ($filterEnabled) {
+            $filters->enable('tenant')->setParameter('tenant_id', $tenant->getId());
+        }
 
         if ($user === null) {
             $exception = new UserNotFoundException(sprintf('User "%s" was not found for the current tenant.', $identifier));
             $exception->setUserIdentifier($identifier);
-
             throw $exception;
         }
 
