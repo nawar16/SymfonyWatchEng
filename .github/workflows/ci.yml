@@ -17,6 +17,7 @@ jobs:
         run: |
           echo "APP_ENV=dev" > .env
           echo "APP_SECRET=67d1217409d5" >> .env
+          echo "DEFAULT_URI=http://localhost" >> .env
           echo "DATABASE_URL=postgresql://dummy:dummy@postgres:5432/postgres" >> .env
 
           mkdir -p config/jwt
