@@ -5,8 +5,7 @@ services:
         public: true
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
-            $tenantContext: '@App\Tenant\TenantContext'
-            $userRepository: '@App\Repository\UserRepository'
+            $tenantRepository: '@App\Repository\TenantRepository'
             $passwordHasher: '@security.user_password_hasher'
         tags: ['controller.service_arguments']
     Doctrine\ORM\EntityManagerInterface:
@@ -16,5 +15,3 @@ services:
         autowire: true
         autoconfigure: true
         public: true
-        tags:
-            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }

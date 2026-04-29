@@ -86,4 +86,17 @@ class TenantFilterTest extends KernelTestCase
 
         self::assertSame("'".$tenant->getId()."'", $filter->getParameter('tenant_id'));
     }
+
+    public function testUnknownSubdomainReturnsTenantNotFoundResponse(): void
+    {
+        $request = Request::create('http://missing.test/');
+        $event = new RequestEvent(self::$kernel, $request, HttpKernelInterface::MAIN_REQUEST);
+
+        $this->tenantListener->onKernelRequest($event);
+
+        self::assertTrue($event->hasResponse());
+        self::assertSame(404, $event->getResponse()?->getStatusCode());
+        self::assertStringContainsString('Tenant not found', $event->getResponse()?->getContent() ?: '');
+        self::assertNull($this->tenantContext->getCurrentTenant());
+    }
 }

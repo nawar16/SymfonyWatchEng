@@ -17,3 +17,7 @@ api_register:
     path: /api/register
     controller: App\Controller\RegistrationController::__invoke
     methods: [POST]
+
+api_login_check:
+    path: /api/login_check
+    methods: [POST]

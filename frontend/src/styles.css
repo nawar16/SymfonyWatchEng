@@ -1,0 +1,270 @@
+:root {
+  color: #17202a;
+  background: #f5f7f8;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: #116149;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0d4937;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(17, 97, 73, 0.1), transparent 38%),
+    linear-gradient(315deg, rgba(177, 88, 49, 0.13), transparent 35%),
+    #f5f7f8;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.brand {
+  color: #17202a;
+  font-size: 1.15rem;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+main {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  gap: 48px;
+  align-items: center;
+  min-height: calc(100vh - 150px);
+}
+
+.auth-copy h1,
+.dashboard-header h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #17202a;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.auth-copy p:not(.eyebrow) {
+  max-width: 520px;
+  color: #56616b;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #b15831;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.form-panel {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid #dce3e1;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 45px rgba(23, 32, 42, 0.08);
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  color: #33404a;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #cbd6d3;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17202a;
+  padding: 12px 14px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #116149;
+  box-shadow: 0 0 0 3px rgba(17, 97, 73, 0.15);
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.primary-button {
+  background: #116149;
+  color: #ffffff;
+  padding: 12px 18px;
+}
+
+.secondary-button {
+  border: 1px solid #116149;
+  background: #ffffff;
+  color: #116149;
+  padding: 10px 16px;
+}
+
+.ghost-button {
+  background: transparent;
+  color: #116149;
+  padding: 8px 0;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.form-footer {
+  margin: 0;
+  color: #66727c;
+  font-size: 0.95rem;
+}
+
+.notice {
+  margin: 0;
+  border-radius: 6px;
+  background: #e8eef3;
+  color: #33404a;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
+.notice.error {
+  background: #fae9e5;
+  color: #8f2f1b;
+}
+
+.notice.success {
+  background: #e5f3ed;
+  color: #116149;
+}
+
+.dashboard-layout {
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.info-card {
+  display: grid;
+  gap: 8px;
+  min-height: 150px;
+  padding: 24px;
+  border: 1px solid #dce3e1;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.info-card.wide {
+  grid-column: 1 / -1;
+}
+
+.info-card span {
+  color: #b15831;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.info-card strong {
+  color: #17202a;
+  font-size: 1.4rem;
+}
+
+.info-card p {
+  margin: 0;
+  color: #56616b;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .topbar,
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .auth-layout,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-layout {
+    align-items: start;
+    gap: 28px;
+    min-height: auto;
+  }
+
+  .form-panel,
+  .info-card {
+    padding: 20px;
+  }
+}

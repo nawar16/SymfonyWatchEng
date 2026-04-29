@@ -10,3 +10,6 @@
 /vendor/
 ###< symfony/framework-bundle ###
 .env
+
+/frontend/node_modules/
+/frontend/dist/
