@@ -34,7 +34,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $tenant = (new Tenant())
             ->setName('Tenant One')
-            ->setSubdomain('tenant1.test');
+            ->setSubdomain('tenant1');
 
         $this->entityManager->persist($tenant);
         $this->entityManager->flush();
@@ -67,12 +67,12 @@ class RegistrationControllerTest extends WebTestCase
 
         $payload = json_decode($response->getContent() ?: '', true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('user@example.com', $payload['email']);
-        self::assertSame('tenant1.test', $payload['tenant']);
+        self::assertSame('tenant1', $payload['tenant']);
 
         $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => 'user@example.com']);
 
         self::assertNotNull($user);
-        self::assertSame('tenant1.test', $user->getTenant()?->getSubdomain());
+        self::assertSame('tenant1', $user->getTenant()?->getSubdomain());
         self::assertNotSame('secret123', $user->getPassword());
     }
 

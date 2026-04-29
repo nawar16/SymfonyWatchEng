@@ -42,11 +42,11 @@ class TenantFilterTest extends KernelTestCase
 
         $tenantOne = (new Tenant())
             ->setName('Tenant One')
-            ->setSubdomain('tenant1.test');
+            ->setSubdomain('tenant1');
 
         $tenantTwo = (new Tenant())
             ->setName('Tenant Two')
-            ->setSubdomain('tenant2.test');
+            ->setSubdomain('tenant2');
 
         $this->entityManager->persist($tenantOne);
         $this->entityManager->persist($tenantTwo);
@@ -80,7 +80,7 @@ class TenantFilterTest extends KernelTestCase
         $tenant = $this->tenantContext->getCurrentTenant();
 
         self::assertNotNull($tenant);
-        self::assertSame('tenant1.test', $tenant->getSubdomain());
+        self::assertSame('tenant1', $tenant->getSubdomain());
 
         $filter = $this->entityManager->getFilters()->getFilter('tenant');
 

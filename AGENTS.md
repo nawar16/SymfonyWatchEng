@@ -5,9 +5,11 @@
 - Database: PostgreSQL (Shared schema)
 
 ## Rules
-- Scoped Uniqueness: Users must be unique per tenant (email + tenant_id)
-- Contextual Awareness: Always resolve Tenant via Hostname before any Auth or DB action
-- Use PHP 8.3 attributes and strict typing
+- Subdomain Resolution: Identify Tenants via Hostname parsing (Host -> Subdomain lookup).
+- Database Multi-tenancy: Shared schema using Doctrine SQL Filters on `tenant_id`.
+- Scoped Uniqueness: Users must be unique per tenant (Email + TenantID).
+- Fail-Fast: 404 error if the subdomain does not exist in the `tenant` table.
+- Strict Context: The `TenantContext` service is the single source of truth for the active tenant during a request.
 
 ## Security Rules
 - No Global Users: Every User MUST implement TenantScopedInterface

@@ -29,20 +29,21 @@ class TenantListener
 
         $request = $event->getRequest();
         $host = mb_strtolower($request->getHost());
+        $subdomain = $this->extractSubdomain($host);
 
-        if ($this->shouldSkipTenantResolution($host)) {
-            $this->tenantContext->setTenant(null);
+        if ($subdomain === null) {
+            $this->tenantContext->setCurrentTenant(null);
 
             return;
         }
 
-        $tenant = $this->tenantRepository->findOneByHostname($host);
+        $tenant = $this->tenantRepository->findOneBySubdomain($subdomain);
 
         if ($tenant === null) {
             throw new NotFoundHttpException(sprintf('No tenant matched the host "%s".', $host));
         }
 
-        $this->tenantContext->setTenant($tenant);
+        $this->tenantContext->setCurrentTenant($tenant);
 
         $filters = $this->entityManager->getFilters();
         $filter = $filters->isEnabled('tenant')
@@ -51,14 +52,30 @@ class TenantListener
 
         $filter->setParameter('tenant_id', (string) $tenant->getId());
         $request->attributes->set(Tenant::class, $tenant);
+        $request->attributes->set('tenant_subdomain', $subdomain);
     }
 
-    private function shouldSkipTenantResolution(string $host): bool
+    private function extractSubdomain(string $host): ?string
     {
         if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-            return true;
+            return null;
         }
 
-        return filter_var($host, FILTER_VALIDATE_IP) !== false;
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return null;
+        }
+
+        if (!str_contains($host, '.')) {
+            return null;
+        }
+
+        $parts = explode('.', $host);
+        $subdomain = $parts[0] ?? null;
+
+        if ($subdomain === null || $subdomain === '') {
+            return null;
+        }
+
+        return $subdomain;
     }
 }
