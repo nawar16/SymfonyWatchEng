@@ -23,6 +23,7 @@ jobs:
 
           cat <<'EOF' > .env.local
           APP_ENV=dev
+          DEFAULT_URI=http://localhost
           DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           EOF
 
@@ -60,6 +61,7 @@ jobs:
       - name: Generate JWT Keys
         run: |
           docker compose exec -T \
+            -e DEFAULT_URI="http://localhost" \
             -e JWT_PASSPHRASE="${{ secrets.JWT_PASSPHRASE }}" \
             -e JWT_SECRET_KEY="config/jwt/private.pem" \
             -e JWT_PUBLIC_KEY="config/jwt/public.pem" \
