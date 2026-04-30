@@ -36,17 +36,21 @@ jobs:
           JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
           DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
           TEST_DATABASE_URL="postgresql://postgres.${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@postgres:5432/postgres?serverVersion=16.0.0&charset=utf8"
-    
           EOF
 
       - name: Start Docker services
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: docker compose up -d --build
 
       - name: Wait for PostgreSQL
         shell: bash
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
         run: |
           for attempt in {1..30}; do
-            if docker compose exec -T postgres pg_isready -U 'postgres.${{ secrets.DB_USER }}' -d postgres; then
+            if docker compose exec -T postgres pg_isready -U "postgres.$DB_USER" -d postgres; then
               exit 0
             fi
             sleep 2
