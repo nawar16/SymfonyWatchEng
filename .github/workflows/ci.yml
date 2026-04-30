@@ -42,7 +42,7 @@ jobs:
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: docker compose up -d --build
+        run: docker compose -f docker-compose.yml up -d --build
 
       - name: Wait for PostgreSQL
         shell: bash
@@ -50,7 +50,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
         run: |
           for attempt in {1..30}; do
-            if docker compose exec -T postgres pg_isready -U "postgres.$DB_USER" -d postgres; then
+            if docker compose -f docker-compose.yml exec -T postgres pg_isready -U "postgres.$DB_USER" -d postgres; then
               exit 0
             fi
             sleep 2
@@ -59,27 +59,30 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          docker compose exec -T php git config --global --add safe.directory /var/www/html
-          docker compose exec -T php composer install --no-interaction --prefer-dist --no-scripts
-          docker compose exec -T php composer require symfony/orm-pack lexik/jwt-authentication-bundle --no-interaction --no-scripts
-          docker compose exec -T php composer require --dev symfony/test-pack --no-interaction --no-scripts
+          docker compose -f docker-compose.yml exec -T php git config --global --add safe.directory /var/www/html
+          docker compose -f docker-compose.yml exec -T php composer install --no-interaction --prefer-dist --no-scripts
+          docker compose -f docker-compose.yml exec -T php composer require symfony/orm-pack lexik/jwt-authentication-bundle --no-interaction --no-scripts
+          docker compose -f docker-compose.yml exec -T php composer require --dev symfony/test-pack --no-interaction --no-scripts
 
       - name: Generate JWT Keys
         run: |
-          docker compose exec -T \
+          docker compose -f docker-compose.yml exec -T \
             -e DEFAULT_URI="http://localhost" \
             -e JWT_PASSPHRASE="${{ secrets.JWT_PASSPHRASE }}" \
             -e JWT_SECRET_KEY="config/jwt/private.pem" \
             -e JWT_PUBLIC_KEY="config/jwt/public.pem" \
             php php bin/console lexik:jwt:generate-keypair --overwrite --no-interaction
-          docker compose exec -T php chown -R www-data:www-data config/jwt
+          docker compose -f docker-compose.yml exec -T php chown -R www-data:www-data config/jwt
 
       - name: Setup Database & Run Tests
         run: |
-          docker compose exec -T -e APP_ENV=test php php bin/console doctrine:database:create --if-not-exists
-          docker compose exec -T -e APP_ENV=test php php bin/console doctrine:schema:create
-          docker compose exec -T -e APP_ENV=test php php vendor/bin/phpunit
+          docker compose -f docker-compose.yml exec -T -e APP_ENV=test php php bin/console doctrine:database:create --if-not-exists
+          docker compose -f docker-compose.yml exec -T -e APP_ENV=test php php bin/console doctrine:schema:create
+          docker compose -f docker-compose.yml exec -T -e APP_ENV=test php php vendor/bin/phpunit
 
       - name: Shut down services
         if: always()
-        run: docker compose down -v
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: docker compose -f docker-compose.yml down -v
