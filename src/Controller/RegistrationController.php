@@ -18,7 +18,7 @@ class RegistrationController
         private readonly EntityManagerInterface $entityManager,
         private readonly TenantRepository $tenantRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
-         private readonly array $reservedSubdomains
+        private readonly array $reservedSubdomains
     ) {
     }
 

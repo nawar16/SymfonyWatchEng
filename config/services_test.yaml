@@ -8,6 +8,8 @@ services:
             $tenantRepository: '@App\Repository\TenantRepository'
             $passwordHasher: '@security.user_password_hasher'
         tags: ['controller.service_arguments']
+        bind:
+            array $reservedSubdomains: '%app.reserved_subdomains%'
     Doctrine\ORM\EntityManagerInterface:
         alias: doctrine.orm.entity_manager
         public: true
