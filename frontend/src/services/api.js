@@ -1,7 +1,5 @@
 import { clearSession, getToken } from './auth';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
-
 export class ApiError extends Error {
   constructor(message, status, payload = null) {
     super(message);
@@ -11,9 +9,15 @@ export class ApiError extends Error {
   }
 }
 
+function getApiBaseUrl() {
+  return import.meta.env.VITE_API_BASE_URL || window.location.origin;
+}
+
 async function request(path, options = {}) {
   const token = getToken();
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const baseUrl = getApiBaseUrl();
+  
+  const response = await fetch(`${baseUrl}${path}`, {
     ...options,
     headers: {
       Accept: 'application/json',
@@ -26,7 +30,7 @@ async function request(path, options = {}) {
   const payload = await parseJson(response);
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && path !== '/dashboard') {
       clearSession();
     }
 
@@ -65,5 +69,5 @@ export function loginUser(credentials) {
 }
 
 export function loadDashboard() {
-  return request('/dashboard');
+  return request('/api/dashboard');
 }

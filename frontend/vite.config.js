@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-const backendUrl = process.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const backendUrl = process.env.VITE_BACKEND_URL || 'http://localhost:8080';
 const tenantAwareProxy = {
   target: backendUrl,
   changeOrigin: false,
@@ -22,8 +22,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': tenantAwareProxy,
-      '/dashboard': tenantAwareProxy,
+      '/api': tenantAwareProxy
     },
   },
 });

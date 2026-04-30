@@ -9,7 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DashboardController extends AbstractController
 {
-    #[Route('/dashboard', name: 'app_dashboard', methods: ['GET'])]
+    #[Route('/api/dashboard', name: 'app_dashboard', methods: ['GET'])]
     public function index(TenantContext $tenantContext): JsonResponse
     {
         $user = $this->getUser(); 
