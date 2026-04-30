@@ -18,6 +18,7 @@ class RegistrationController
         private readonly EntityManagerInterface $entityManager,
         private readonly TenantRepository $tenantRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
+         private readonly array $reservedSubdomains
     ) {
     }
 
@@ -42,6 +43,9 @@ class RegistrationController
             return new JsonResponse(['error' => 'Email, password, and subdomain are required.'], Response::HTTP_BAD_REQUEST);
         }
 
+        if (in_array($subdomain, $this->reservedSubdomains, true)) {
+            return new JsonResponse(['error' => 'This subdomain is reserved.'], Response::HTTP_BAD_REQUEST);
+        }
         if (!$this->isValidSubdomain($subdomain)) {
             return new JsonResponse([
                 'error' => 'Subdomain must be 3-63 characters and contain only lowercase letters, numbers, and hyphens.',
