@@ -6,6 +6,7 @@ use App\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Identity\Domain\Entity\User;
 
 #[ORM\Entity(repositoryClass: TenantRepository::class)]
 #[ORM\Table(name: 'tenant')]
