@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Tenancy\Domain\Entity;
 
-use App\Repository\TenantRepository;
+use App\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

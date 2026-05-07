@@ -2,7 +2,7 @@
 
 namespace App\Shared\Domain;
 
-use App\Entity\Tenant;
+use App\Tenancy\Domain\Entity\Tenant;
 
 interface TenantScopedInterface
 {

@@ -2,8 +2,8 @@
 
 namespace App\Tests\Doctrine;
 
-use App\Entity\Tenant;
-use App\Entity\User;
+use App\Tenancy\Domain\Entity\Tenant;
+use App\Identity\Domain\Entity\User;
 use App\Tenancy\Infrastructure\EventListener\TenantListener;
 use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;

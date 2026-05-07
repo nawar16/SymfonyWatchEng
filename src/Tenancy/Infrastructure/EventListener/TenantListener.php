@@ -2,8 +2,8 @@
 
 namespace App\Tenancy\Infrastructure\EventListener;
 
-use App\Entity\Tenant;
-use App\Repository\TenantRepository;
+use App\Tenancy\Domain\Entity\Tenant;
+use App\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository;
 use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;

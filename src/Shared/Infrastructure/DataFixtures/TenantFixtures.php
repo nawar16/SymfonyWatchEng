@@ -1,8 +1,8 @@
 <?php
 
-namespace App\DataFixtures;
+namespace App\Shared\Infrastructure\DataFixtures;
 
-use App\Entity\Tenant;
+use App\Tenancy\Domain\Entity\Tenant;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 

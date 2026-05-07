@@ -49,7 +49,7 @@ doctrine:
                         type: attribute
                         is_bundle: false
                         dir: '%kernel.project_dir%/src/Entity'
-                        prefix: 'App\Entity'
+                        prefix: 'App\Tenancy\Domain\Entity'
                         alias: App
                 naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
                 report_fields_where_declared: true

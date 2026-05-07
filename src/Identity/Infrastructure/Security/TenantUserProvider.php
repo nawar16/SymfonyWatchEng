@@ -2,8 +2,8 @@
 
 namespace App\Identity\Infrastructure\Security;
 
-use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Identity\Domain\Entity\User;
+use App\Identity\Infrastructure\Doctrine\Repository\UserRepository;
 use App\Tenancy\Application\TenantContext;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;

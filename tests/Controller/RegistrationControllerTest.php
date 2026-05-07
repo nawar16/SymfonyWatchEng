@@ -2,8 +2,8 @@
 
 namespace App\Tests\Controller;
 
-use App\Entity\Tenant;
-use App\Entity\User;
+use App\Tenancy\Domain\Entity\Tenant;
+use App\Identity\Domain\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;

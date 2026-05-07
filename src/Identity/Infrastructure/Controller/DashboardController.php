@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Identity\Infrastructure\Controller;
 
 use App\Tenancy\Application\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

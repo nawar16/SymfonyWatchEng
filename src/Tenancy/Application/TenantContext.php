@@ -2,7 +2,7 @@
 
 namespace App\Tenancy\Application;
 
-use App\Entity\Tenant;
+use App\Tenancy\Domain\Entity\Tenant;
 
 class TenantContext
 {

@@ -1,11 +1,11 @@
 services:
     App\Tenancy\Application\TenantContext:
         public: true    
-    App\Controller\RegistrationController:
+    App\Tenancy\Infrastructure\Controller\RegistrationController:
         public: true
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
-            $tenantRepository: '@App\Repository\TenantRepository'
+            $tenantRepository: '@App\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository'
             $passwordHasher: '@security.user_password_hasher'
         tags: ['controller.service_arguments']
         bind:
