@@ -16,3 +16,13 @@
 - Tenant-Aware Auth: Authenticated users must belong to the active TenantContext
 - JWT: Use lexik/jwt-authentication-bundle
 
+## DDD Architectural Rules
+- **Domain Isolation**: Business logic and Entities must reside in `src/[Context]/Domain`. No framework dependencies (like Controllers) are allowed here.
+- **Infrastructure Layer**: All Symfony-specific implementations (Listeners, Filters, Repositories) must reside in `src/[Context]/Infrastructure`.
+- **Entity Mapping**: Use Doctrine Attribute mapping explicitly defined in `doctrine.yaml`.   
+- **Bounded Contexts**: 
+    - `Tenancy`: Handles the SaaS shell, subdomains, and tenant lifecycle.
+    - `Identity`: Handles authentication, roles, and user profiles.
+- **Cross-Context Communication**: Use the `Shared` folder for interfaces or Dispatch Events. Never allow `Identity` entities to have direct dependencies on another logic.
+
+
