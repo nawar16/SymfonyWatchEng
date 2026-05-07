@@ -4,7 +4,7 @@ namespace App\Tenancy\Infrastructure\Controller;
 
 use App\Tenancy\Domain\Entity\Tenant;
 use App\Identity\Domain\Entity\User;
-use App\ReposApp\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository;
+use App\Tenancy\Infrastructure\Doctrine\Repository\TenantRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
