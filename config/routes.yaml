@@ -7,10 +7,16 @@
 # To list all registered routes, run the following command:
 #   bin/console debug:router
 
-controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
+tenancy_controllers:
+    resource: 
+        path: ../src/Tenancy/Infrastructure/Controller/
+        namespace: App\Tenancy\Infrastructure\Controller
+    type: attribute
+
+identity_controllers:
+    resource: 
+        path: ../src/Identity/Infrastructure/Controller/
+        namespace: App\Identity\Infrastructure\Controller
     type: attribute
 
 api_register:
