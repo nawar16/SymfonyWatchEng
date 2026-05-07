@@ -4,7 +4,7 @@ security:
 
     providers:
         app_user_provider:
-            id: App\Security\TenantUserProvider
+            id: App\Identity\Infrastructure\Security\TenantUserProvider
 
     firewalls:
         dev:
@@ -15,7 +15,7 @@ security:
             lazy: true
             provider: app_user_provider
             stateless: true
-            user_checker: App\Security\UserChecker
+            user_checker: App\Identity\Infrastructure\Security\UserChecker
             json_login:
                 check_path: /api/login_check
                 username_path: email

@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Tenant\TenantContext;
+use App\Tenancy\Application\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;

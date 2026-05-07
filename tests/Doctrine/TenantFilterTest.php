@@ -4,8 +4,8 @@ namespace App\Tests\Doctrine;
 
 use App\Entity\Tenant;
 use App\Entity\User;
-use App\EventListener\TenantListener;
-use App\Tenant\TenantContext;
+use App\Tenancy\Infrastructure\EventListener\TenantListener;
+use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\Attributes\After;

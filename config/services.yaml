@@ -38,7 +38,7 @@ services:
             $passwordHasher: '@security.user_password_hasher'
         tags: ['controller.service_arguments']
 
-    App\EventListener\TenantListener:
+    App\Tenancy\Infrastructure\EventListener\TenantListener:
         autowire: true
         autoconfigure: true
         tags:

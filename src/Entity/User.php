@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Entity\Contract\TenantScopedInterface;
+use App\Shared\Domain\TenantScopedInterface;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;

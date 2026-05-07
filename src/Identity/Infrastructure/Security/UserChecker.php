@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Security;
+namespace App\Identity\Infrastructure\Security;
 
 use App\Entity\User;
-use App\Tenant\TenantContext;
+use App\Tenancy\Application\TenantContext;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;

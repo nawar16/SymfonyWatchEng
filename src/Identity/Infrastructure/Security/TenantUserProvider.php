@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Security;
+namespace App\Identity\Infrastructure\Security;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Tenant\TenantContext;
+use App\Tenancy\Application\TenantContext;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;

@@ -40,7 +40,7 @@ doctrine:
                 auto_mapping: true
                 filters:
                     tenant:
-                        class: App\Doctrine\TenantFilter
+                        class: App\Tenancy\Infrastructure\Doctrine\Filter\TenantFilter
                         enabled: false
                 identity_generation_preferences:
                     Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity

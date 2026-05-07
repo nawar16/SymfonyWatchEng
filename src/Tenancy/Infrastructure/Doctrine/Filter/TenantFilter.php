@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Doctrine;
+namespace App\Tenancy\Infrastructure\Doctrine\Filter;
 
-use App\Entity\Contract\TenantScopedInterface;
+use App\Shared\Domain\TenantScopedInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\EventListener;
+namespace App\Tenancy\Infrastructure\EventListener;
 
 use App\Entity\Tenant;
 use App\Repository\TenantRepository;
-use App\Tenant\TenantContext;
+use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;

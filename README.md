@@ -1,4 +1,5 @@
-A multi-tenant monitoring engine built by symfony
+A multi-tenant monitoring engine built by symfony 
+
 Each tenant gets a private workspace to track URLs, analyze response times, and receive instant alerts when services fail
 
 ## Testing
@@ -13,7 +14,7 @@ php bin/phpunit
 
 ## Local DNS
 - For local development, prefer '*.localhost' style hostnames such as 'companya.localhost'.
-- If your browser or OS does not resolve wildcard localhost names the way you want, use 'dnsmasq' or add explicit host entries for the tenants you are testing.
+- If your browser or OS does not resolve wildcard localhost names, use 'dnsmasq' or add explicit host entries for the tenants you are testing.
 - Example local URLs:
   - 'http://companya.localhost:8080'
   - 'http://companyb.localhost:8080'

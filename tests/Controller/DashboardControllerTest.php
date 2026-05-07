@@ -4,7 +4,7 @@ namespace App\Tests\Controller;
 
 use App\Entity\Tenant;
 use App\Entity\User;
-use App\Tenant\TenantContext;
+use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;

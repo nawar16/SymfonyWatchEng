@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tenant;
+namespace App\Tenancy\Application;
 
 use App\Entity\Tenant;
 
