@@ -15,3 +15,4 @@
 - No Global Users: Every User MUST implement TenantScopedInterface
 - Tenant-Aware Auth: Authenticated users must belong to the active TenantContext
 - JWT: Use lexik/jwt-authentication-bundle
+
