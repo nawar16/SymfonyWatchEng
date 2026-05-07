@@ -45,12 +45,18 @@ doctrine:
                 identity_generation_preferences:
                     Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
                 mappings:
-                    App:
+                    Tenancy:
                         type: attribute
                         is_bundle: false
-                        dir: '%kernel.project_dir%/src/Entity'
+                        dir: '%kernel.project_dir%/src/Tenancy/Domain/Entity'
                         prefix: 'App\Tenancy\Domain\Entity'
-                        alias: App
+                        alias: Tenancy
+                    Identity:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Identity/Domain/Entity'
+                        prefix: 'App\Identity\Domain\Entity'
+                        alias: Identity
                 naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
                 report_fields_where_declared: true
                 validate_xml_mapping: true
