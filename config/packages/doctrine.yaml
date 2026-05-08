@@ -57,6 +57,12 @@ doctrine:
                         dir: '%kernel.project_dir%/src/Identity/Domain/Entity'
                         prefix: 'App\Identity\Domain\Entity'
                         alias: Identity
+                    Monitoring:
+                        type: attribute
+                        is_bundle: false
+                        dir: '%kernel.project_dir%/src/Monitoring/Domain/Entity'
+                        prefix: 'App\Monitoring\Domain\Entity'
+                        alias: Monitoring
                 naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
                 report_fields_where_declared: true
                 validate_xml_mapping: true

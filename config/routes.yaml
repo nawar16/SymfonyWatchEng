@@ -19,6 +19,12 @@ identity_controllers:
         namespace: App\Identity\Infrastructure\Controller
     type: attribute
 
+monitoring_controllers:
+    resource: 
+        path: ../src/Monitoring/Infrastructure/Controller/
+        namespace: App\Monitoring\Infrastructure\Controller
+    type: attribute
+
 api_register:
     path: /api/register
     controller: App\Tenancy\Infrastructure\Controller\RegistrationController::__invoke

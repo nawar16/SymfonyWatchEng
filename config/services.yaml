@@ -32,6 +32,10 @@ services:
     App\Identity\Infrastructure\Controller\:
         resource: '../src/Identity/Infrastructure/Controller/'
         tags: ['controller.service_arguments']
+        
+    App\Monitoring\Infrastructure\Controller\:
+        resource: '../src/Monitoring/Infrastructure/Controller/'
+        tags: ['controller.service_arguments']
 
         # public: true
         # autowire: true

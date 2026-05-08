@@ -120,6 +120,12 @@
     "symfony/twig-bundle": {
         "version": "v7.4.8"
     },
+    "symfony/validator": {
+        "version": "7.4",
+        "recipe": {
+            "version": "7.0"
+        }
+    },
     "symfony/web-profiler-bundle": {
         "version": "v7.4.8"
     }
