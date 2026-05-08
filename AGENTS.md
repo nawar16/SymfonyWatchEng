@@ -24,6 +24,6 @@
     - `Tenancy`: Handles the SaaS shell, subdomains, and tenant lifecycle.
     - `Identity`: Handles authentication, roles, and user profiles.
     - `Monitoring`: Handles pings, health checks, and incidents.
-- **Cross-Context Communication**: Use the `Shared` folder for interfaces or Dispatch Events. Never allow `Identity` entities to have direct dependencies on another logic.
+- **Cross-Context Communication**: Use the `Shared` folder for interfaces or Dispatch Events. Never allow `Identity` entities to have direct dependencies on `Monitoring` logic.
 
 
