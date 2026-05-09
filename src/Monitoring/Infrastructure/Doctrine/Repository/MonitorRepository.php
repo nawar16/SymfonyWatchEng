@@ -14,6 +14,11 @@ class MonitorRepository extends ServiceEntityRepository
         parent::__construct($registry, Monitor::class);
     }
 
+    public function findAllByTenant(Tenant $tenant): array
+    {
+        return $this->findBy(['tenant' => $tenant]);
+    }
+
     public function countByTenant(Tenant $tenant): int
     {
         return $this->count(['tenant' => $tenant]);

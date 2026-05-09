@@ -36,7 +36,8 @@ class MonitorService
 
     public function listAll(): array
     {
-        return $this->repository->findAll(); 
+        $tenant = $this->tenantContext->getCurrentTenant();
+        return $this->repository->findAllByTenant($tenant);
     }
 
     public function update(int $id, MonitorInput $input): Monitor
