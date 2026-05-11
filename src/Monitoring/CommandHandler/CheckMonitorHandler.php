@@ -2,6 +2,7 @@
 
 namespace App\Monitoring\Application\CommandHandler;
 
+use App\Monitor\Domain\Service\PingServiceInterface;
 use App\Monitoring\Application\Command\CheckMonitorCommand;
 use App\Monitoring\Domain\Entity\HealthCheck;
 use App\Monitoring\Infrastructure\Doctrine\Repository\HealthCheckRepository;
@@ -15,37 +16,23 @@ class CheckMonitorHandler
     public function __construct(
         private MonitorRepository $monitorRepository,
         private HealthCheckRepository $healthCheckRepository,
-        private HttpClientInterface $httpClient
+        private HttpClientInterface $httpClient,
+        private PingServiceInterface $pingService 
     ) {}
 
     public function __invoke(CheckMonitorCommand $command): void
     {
         $monitor = $this->monitorRepository->find($command->monitorId);
-        if (!$monitor) {
-            return; 
-        }
-        $start = microtime(true);
-        try {
-            $response = $this->httpClient->request('GET', $monitor->getUrl(), [
-                'timeout' => 10, 
-                'max_redirects' => 3,
-            ]);
-            $statusCode = $response->getStatusCode();
-            $isSuccess = ($statusCode >= 200 && $statusCode < 300); 
-        } catch (\Exception $e) {
-            $statusCode = 0; 
-            $isSuccess = false;
-        }
-        $duration = (int) ((microtime(true) - $start) * 1000); 
+        if (!$monitor) return;
+        $result = $this->pingService->ping($monitor->getUrl());
         $check = new HealthCheck(
             $monitor->getId(),
-            $statusCode,
-            $duration,
-            $isSuccess
+            $result['status_code'],
+            $result['response_time'],
+            $result['success']
         );
-        $this->healthCheckRepository->save($check, true);
-
         // TODO: update Redis for realtime dashboard
         // $this->redisStateStore->updateStatus($monitor->getId(), $isSuccess);
+        $this->healthCheckRepository->save($check, true);
     }
 }
