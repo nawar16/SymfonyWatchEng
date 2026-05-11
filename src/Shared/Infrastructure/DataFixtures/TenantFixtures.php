@@ -13,11 +13,17 @@ class TenantFixtures extends Fixture
     {
         $companyNames = ['tenant1', 'tenant2', 'tenant3', 'tenant4', 'tenant5'];
         foreach ($companyNames as $name) {
-            $tenant = new Tenant();
-            $tenant->setName($name);
-            $tenant->setSubdomain(strtolower($name));
-            $manager->persist($tenant);
-            $this->addReference(self::TENANT_REF_PREFIX . $name, $tenant);
+            $existingTenant = $manager->getRepository(Tenant::class)->findOneBy(['subdomain' => $name]);
+            if (!$existingTenant) {
+                $tenant = new Tenant();
+                $tenant->setName($name);
+                $tenant->setSubdomain(strtolower($name));
+                $manager->persist($tenant);
+                $this->addReference(self::TENANT_REF_PREFIX . $name, $tenant);
+            } else {
+                $tenant = $existingTenant;
+                $this->addReference(self::TENANT_REF_PREFIX . $name, $tenant);
+            }
         }
         $manager->flush();
     }
