@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Monitor\Infrastructure\Doctrine\Repository;
+namespace App\Monitoring\Infrastructure\Doctrine\Repository;
 
-use App\Monitor\Domain\Entity\HealthCheck;
+use App\Monitoring\Domain\Entity\HealthCheck;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

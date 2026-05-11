@@ -2,61 +2,50 @@
 
 namespace App\Monitoring\Domain\Entity;
 
-use App\Tenancy\Domain\Entity\Tenant;
 use Doctrine\ORM\Mapping as ORM;
-use App\Monitoring\Infrastructure\Doctrine\Repository\MonitorRepository;
-use App\Shared\Domain\TenantScopedInterface;
-use Symfony\Component\Serializer\Annotation\Groups; 
 
-#[ORM\Entity(repositoryClass: MonitorRepository::class)]
-class Monitor implements TenantScopedInterface
+#[ORM\Entity]
+#[ORM\Table(name: "health_checks")]
+#[ORM\Index(columns: ["monitor_id", "checked_at"])]
+class HealthCheck
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[Groups(['monitor:read'])] 
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['monitor:read'])] 
-    private string $url;
+    #[ORM\Column]
+    private int $monitorId;
+
+    #[ORM\Column(type: "smallint")]
+    private int $statusCode;
 
     #[ORM\Column]
-    #[Groups(['monitor:read'])] 
-    private int $frequency = 60;
+    private int $responseTimeMs;
 
     #[ORM\Column]
-    private int $expectedStatusCode = 200;
-
-    #[ORM\ManyToOne(targetEntity: Tenant::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Tenant $tenant;
+    private \DateTimeImmutable $checkedAt;
 
     #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
+    private bool $isSuccess;
 
-    public function __construct(string $url, int $frequency, Tenant $tenant)
-    {
-        $this->url = $url;
-        $this->frequency = $frequency;
-        $this->tenant = $tenant;
-        $this->createdAt = new \DateTimeImmutable();
+    public function __construct(
+        int $monitorId,
+        int $statusCode,
+        int $responseTimeMs,
+        bool $isSuccess
+    ) {
+        $this->monitorId = $monitorId;
+        $this->statusCode = $statusCode;
+        $this->responseTimeMs = $responseTimeMs;
+        $this->isSuccess = $isSuccess;
+        $this->checkedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int { return $this->id; }
-    public function getUrl(): string { return $this->url; }
-    public function setUrl(string $url): void { $this->url = $url; }
-    public function getFrequency(): int { return $this->frequency; }
-    public function setFrequency(int $frequency): void { $this->frequency = $frequency; }
-    public function getExpectedStatusCode(): int { return $this->expectedStatusCode; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function getTenant(): ?Tenant
-    {
-        return $this->tenant;
-    }
-    public function setTenant(?Tenant $tenant): static
-    {
-        $this->tenant = $tenant;
-
-        return $this;
-    }
-
+    public function getMonitorId(): int { return $this->monitorId; }
+    public function getStatusCode(): int { return $this->statusCode; }
+    public function getResponseTimeMs(): int { return $this->responseTimeMs; }
+    public function getCheckedAt(): \DateTimeImmutable { return $this->checkedAt; }
+    public function isSuccess(): bool { return $this->isSuccess; }
 }

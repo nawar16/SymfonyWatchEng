@@ -95,6 +95,12 @@
     "symfony/maker-bundle": {
         "version": "v1.67.0"
     },
+    "symfony/messenger": {
+        "version": "7.4",
+        "recipe": {
+            "version": "6.0"
+        }
+    },
     "symfony/property-info": {
         "version": "7.4",
         "recipe": {
@@ -113,6 +119,12 @@
             "./config/packages/routing.yaml",
             "./config/routes.yaml"
         ]
+    },
+    "symfony/scheduler": {
+        "version": "7.4",
+        "recipe": {
+            "version": "7.2"
+        }
     },
     "symfony/security-bundle": {
         "version": "v7.4.8"
