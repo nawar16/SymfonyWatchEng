@@ -21,19 +21,27 @@ class MonitorController extends AbstractController
     public function create(#[MapRequestPayload] MonitorInput $input): JsonResponse
     {
         $monitor = $this->service->create($input);
-        return $this->json($monitor, 201);
+        return $this->json($monitor, 201, [], [
+            'groups' => 'monitor:read'
+        ]);
     }
 
     #[Route('', methods: ['GET'])]
     public function list(): JsonResponse
     {
-        return $this->json($this->service->listAll());
+        $monitors = $this->service->listAll();
+        return $this->json($monitors, 200, [], [
+            'groups' => 'monitor:read'
+        ]);
     }
 
     #[Route('/{id}', methods: ['PUT'])]
     public function update(int $id, #[MapRequestPayload] MonitorInput $input): JsonResponse
     {
-        return $this->json($this->service->update($id, $input));
+        $monitor = $this->service->update($id, $input);
+        return $this->json($monitor, 200, [], [
+            'groups' => 'monitor:read'
+        ]);
     }
 
     #[Route('/{id}', methods: ['DELETE'])]

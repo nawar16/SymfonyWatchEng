@@ -98,9 +98,9 @@ onMounted(async () => {
         <h1>{{ dashboard?.message || 'Workspace overview' }}</h1>
       </div>
 
-      <button class="secondary-button" type="button" @click="load" :disabled="isLoading">
+      <!-- <button class="secondary-button" type="button" @click="load" :disabled="isLoading">
         {{ isLoading ? 'Refreshing...' : 'Refresh' }}
-      </button>
+      </button> -->
     </div>
 
     <p v-if="error" class="notice error">{{ error }}</p>
