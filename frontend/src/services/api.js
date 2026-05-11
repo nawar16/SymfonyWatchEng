@@ -34,7 +34,7 @@ async function request(path, options = {}) {
       clearSession();
     }
 
-    throw new ApiError(payload?.error || payload?.message || 'Request failed.', response.status, payload);
+    throw new ApiError(payload?.error || payload?.detail || payload?.message || 'Request failed.', response.status, payload);
   }
 
   return payload;
@@ -70,4 +70,21 @@ export function loginUser(credentials) {
 
 export function loadDashboard() {
   return request('/api/dashboard');
+}
+
+export function loadMonitors() {
+  return request('/api/monitors');
+}
+
+export function createMonitor(url) {
+  return request('/api/monitors', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+}
+
+export function deleteMonitor(id) {
+  return request(`/api/monitors/${id}`, {
+    method: 'DELETE',
+  });
 }

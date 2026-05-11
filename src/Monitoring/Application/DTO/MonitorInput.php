@@ -10,8 +10,7 @@ class MonitorInput
     #[Assert\Url(message: "The URL '{{ value }}' is not a valid URL.")]
     public string $url;
 
-    #[Assert\NotBlank]
     #[Assert\Type('integer')]
     #[Assert\GreaterThanOrEqual(30, message: "Minimum frequency is 30 seconds.")]
-    public int $frequency;
+    public int $frequency = 60;
 }

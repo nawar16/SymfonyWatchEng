@@ -71,6 +71,48 @@ class RegistrationControllerTest extends WebTestCase
         self::assertNotSame('secret123', $user->getPassword());
     }
 
+    public function testRegisteredUserCanLoginOnTenantSubdomain(): void
+    {
+        $this->client->request(
+            'POST',
+            '/api/register',
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            json_encode([
+                'subdomain' => 'tenant-one',
+                'tenant_name' => 'Tenant One',
+                'email' => 'user@example.com',
+                'password' => 'secret123',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
+        $this->client->request(
+            'POST',
+            '/api/login_check',
+            [],
+            [],
+            [
+                'HTTP_HOST' => 'tenant-one.localhost:5173',
+                'HTTP_X_FORWARDED_HOST' => 'tenant-one.localhost:5173',
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+            ],
+            json_encode([
+                'email' => 'user@example.com',
+                'password' => 'secret123',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('token', $this->client->getResponse()->getContent() ?: '');
+    }
+
     public function testRegisterRejectsTenantIdInPayload(): void
     {
         $this->client->request(

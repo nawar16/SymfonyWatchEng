@@ -31,9 +31,9 @@ async function submit() {
       password: password.value,
     });
 
-    success.value = `Workspace ${user.tenant.subdomain} created for ${user.email}. You can now log in on that subdomain.`;
+    success.value = `Workspace ${user.tenant.subdomain} created for ${user.email}. Redirecting to the main login page.`;
     setTimeout(() => {
-      window.location.assign(buildTenantLoginUrl(user.tenant.subdomain));
+      window.location.assign(buildMainLoginUrl(user.tenant.subdomain));
     }, 900);
   } catch (exception) {
     error.value = exception.message;
@@ -42,19 +42,19 @@ async function submit() {
   }
 }
 
-function buildTenantLoginUrl(tenantSubdomain) {
+function buildMainLoginUrl(tenantSubdomain) {
   const { protocol, hostname, port } = window.location;
 
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return `${protocol}//${tenantSubdomain}.localhost${port ? `:${port}` : ''}/login`;
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost')) {
+    return `${protocol}//localhost${port ? `:${port}` : ''}/login?tenant=${encodeURIComponent(tenantSubdomain)}`;
   }
 
   const labels = hostname.split('.');
-  const baseLabels = labels.length > 2 && !['www', 'api'].includes(labels[0])
+  const mainLabels = labels.length > 2 && !['www', 'api'].includes(labels[0])
     ? labels.slice(1)
     : labels;
 
-  return `${protocol}//${tenantSubdomain}.${baseLabels.join('.')}${port ? `:${port}` : ''}/login`;
+  return `${protocol}//${mainLabels.join('.')}${port ? `:${port}` : ''}/login?tenant=${encodeURIComponent(tenantSubdomain)}`;
 }
 </script>
 

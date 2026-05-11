@@ -58,14 +58,14 @@ final class MonitorControllerTest extends WebTestCase
                 'CONTENT_TYPE' => 'application/json',
             ],
             json_encode([
-                'url' => 'https://google.com',
-                'frequency' => 60
+                'url' => 'https://google.com'
             ])
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_CREATED);
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertSame('https://google.com', $data['url']);
+        self::assertSame(60, $data['frequency']);
     }
 
     public function testCannotCreateDuplicateMonitor(): void

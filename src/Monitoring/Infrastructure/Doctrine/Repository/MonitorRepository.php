@@ -29,4 +29,10 @@ class MonitorRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($monitor);
         $this->getEntityManager()->flush();
     }
+
+    public function remove(Monitor $monitor): void
+    {
+        $this->getEntityManager()->remove($monitor);
+        $this->getEntityManager()->flush();
+    }
 }
