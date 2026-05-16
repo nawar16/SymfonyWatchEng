@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Monitor\Domain\Service;
+namespace App\Monitoring\Domain\Service;
 
 interface PingServiceInterface
 {

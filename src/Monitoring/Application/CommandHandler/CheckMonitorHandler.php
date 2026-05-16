@@ -2,7 +2,7 @@
 
 namespace App\Monitoring\Application\CommandHandler;
 
-use App\Monitor\Domain\Service\PingServiceInterface;
+use App\Monitoring\Domain\Service\PingServiceInterface;
 use App\Monitoring\Application\Command\CheckMonitorCommand;
 use App\Monitoring\Domain\Entity\HealthCheck;
 use App\Monitoring\Infrastructure\Doctrine\Repository\HealthCheckRepository;
@@ -17,7 +17,6 @@ class CheckMonitorHandler
     public function __construct(
         private MonitorRepository $monitorRepository,
         private HealthCheckRepository $healthCheckRepository,
-        private HttpClientInterface $httpClient,
         private PingServiceInterface $pingService,
         private MonitorStateStoreInterface $stateStore 
     ) {}

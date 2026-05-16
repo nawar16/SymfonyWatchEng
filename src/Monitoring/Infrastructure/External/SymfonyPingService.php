@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Monitor\Infrastructure\External;
+namespace App\Monitoring\Infrastructure\External;
 
-use App\Monitor\Domain\Service\PingServiceInterface;
+use App\Monitoring\Domain\Service\PingServiceInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SymfonyPingService implements PingServiceInterface
