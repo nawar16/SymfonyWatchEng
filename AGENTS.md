@@ -26,4 +26,22 @@
     - `Monitoring`: Handles pings, health checks, and incidents.
 - **Cross-Context Communication**: Use the `Shared` folder for interfaces or Dispatch Events. Never allow `Identity` entities to have direct dependencies on `Monitoring` logic.
 
+## Redis Rules
 
+- Redis handles purely ephemeral state data. Dashboard queries fetch status snapshots from Redis keys directly instead of executing expensive SQL aggregations over millions of logs.
+
+- Redis Key Schemas
+1. **Current Status**
+   * **Key**: `monitor:{id}:status`
+   * **Type**: `json string`
+   * **Payload**: `{"status": "UP|DOWN", "response_time": int, "checked_at": "ATOM_string", "status_code": int}`
+
+2. **Failure Accumulator**
+   * **Key**: `monitor:{id}:failures`
+   * **Type**: `integer`
+   * **Use Case**: Atomic increments (`INCR`) to cleanly establish consecutive drops before spawning incident alerts.
+
+3. **Active Incident Cache**
+   * **Key**: `monitor:{id}:incident`
+   * **Type**: `json string`
+   * **Use Case**: Quick lookup dashboard tags (`{"incident_id": int, "started_at": "string"}`) to avoid cross-table MySQL joins.
