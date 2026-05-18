@@ -8,6 +8,12 @@ jobs:
   docker-compose-check:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+          
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -88,8 +94,3 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: docker compose -f docker-compose.yml down -v
-services:
-  redis:
-    image: redis:7
-    ports:
-      - 6379:6379
