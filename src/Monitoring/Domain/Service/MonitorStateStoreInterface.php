@@ -9,4 +9,6 @@ interface MonitorStateStoreInterface
     public function resetFailures(int $monitorId): void;
     public function setActiveIncident(int $monitorId, array $incidentData): void;
     public function clearActiveIncident(int $monitorId): void;
+    public function getStatusSnapshot(int $id): ?array;
+    public function hasActiveIncident(int $id): bool;
 }

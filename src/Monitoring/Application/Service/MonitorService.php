@@ -9,6 +9,7 @@ use App\Tenancy\Application\TenantContext;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Monitoring\Domain\Service\MonitorStateStoreInterface;
 
 class MonitorService
 {
@@ -16,7 +17,8 @@ class MonitorService
 
     public function __construct(
         private MonitorRepository $repository,
-        private TenantContext $tenantContext
+        private TenantContext $tenantContext,
+        private MonitorStateStoreInterface $stateStore
     ) 
     {}
 
