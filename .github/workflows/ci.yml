@@ -20,6 +20,7 @@ jobs:
           echo "DEFAULT_URI=http://localhost" >> .env
           echo "MESSENGER_TRANSPORT_DSN=doctrine://default" >> .env
           echo "DATABASE_URL=postgresql://dummy:dummy@postgres:5432/postgres" >> .env
+          echo "REDIS_DSN=redis://redis:6379" >> .env
           echo "RESERVED_SUBDOMAINS=www,api,admin,mail,localhost" >> .env
 
           mkdir -p config/jwt
@@ -87,3 +88,8 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: docker compose -f docker-compose.yml down -v
+services:
+  redis:
+    image: redis:7
+    ports:
+      - 6379:6379
