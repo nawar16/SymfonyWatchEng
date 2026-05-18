@@ -337,3 +337,52 @@ button:disabled {
     flex-direction: column;
   }
 }
+.url-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-up {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.status-down {
+  background-color: #fce8e6;
+  color: #c5221f;
+}
+
+.status-pending {
+  background-color: #f1f3f4;
+  color: #5f6368;
+}
+
+.incident-badge {
+  background-color: #fef7e0;
+  color: #b06000;
+  border: 1px solid #fbbc04;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+.status-code {
+  font-size: 0.75rem;
+  color: #666;
+  margin-left: 4px;
+}
+
+.text-muted {
+  color: #999;
+}

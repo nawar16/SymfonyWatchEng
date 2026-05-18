@@ -3,6 +3,7 @@
 namespace App\Monitoring\Application\Service;
 
 use App\Monitoring\Application\DTO\MonitorInput;
+use App\Monitoring\Application\DTO\MonitorResponse;
 use App\Monitoring\Domain\Entity\Monitor;
 use App\Monitoring\Infrastructure\Doctrine\Repository\MonitorRepository;
 use App\Tenancy\Application\TenantContext;
@@ -39,7 +40,23 @@ class MonitorService
     public function listAll(): array
     {
         $tenant = $this->tenantContext->getCurrentTenant();
-        return $this->repository->findAllByTenant($tenant);
+        #return $this->repository->findAllByTenant($tenant);
+
+        $monitors = $this->repository->findAllByTenant($tenant);
+        $results = [];
+        foreach ($monitors as $monitor) {
+            $statusData = $this->stateStore->getStatusSnapshot($monitor->getId());
+            $hasIncident = $this->stateStore->hasActiveIncident($monitor->getId());
+            $results[] = new MonitorResponse(
+                $monitor,
+                $statusData['status'] ?? 'PENDING',
+                $statusData['response_time'] ?? null,
+                $statusData['checked_at'] ?? null,
+                $statusData['status_code'] ?? null,
+                $hasIncident
+            );
+        }
+        return $results;
     }
 
     public function update(int $id, MonitorInput $input): Monitor

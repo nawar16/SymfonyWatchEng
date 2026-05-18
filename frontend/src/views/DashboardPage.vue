@@ -151,6 +151,8 @@ onMounted(async () => {
             <thead>
               <tr>
                 <th>URL</th>
+                <th>Status</th>
+                <th>Response Time</th>
                 <th>Frequency</th>
                 <th></th>
               </tr>
@@ -158,7 +160,20 @@ onMounted(async () => {
             <tbody>
               <tr v-for="monitor in monitors" :key="monitor.id">
                 <td>
-                  <a :href="monitor.url" target="_blank" rel="noreferrer">{{ monitor.url }}</a>
+                  <div class="url-wrapper">
+                    <a :href="monitor.url" target="_blank" rel="noreferrer">{{ monitor.url }}</a>
+                    <span v-if="monitor.has_incident" class="badge incident-badge">! INCIDENT</span>
+                  </div>
+                </td>
+                <td>
+                  <span :class="['status-badge', `status-${monitor.status.toLowerCase()}`]">
+                    {{ monitor.status }}
+                  </span>
+                  <small v-if="monitor.status_code" class="status-code">({{ monitor.status_code }})</small>
+                </td>
+                <td>
+                  <span v-if="monitor.response_time">{{ monitor.response_time }}ms</span>
+                  <span v-else class="text-muted">-</span>
                 </td>
                 <td>{{ monitor.frequency }}s</td>
                 <td class="monitor-actions">
