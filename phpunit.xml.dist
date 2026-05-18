@@ -12,7 +12,9 @@
         <env name="DEFAULT_URI" value="http://localhost" />
         <!-- TODO: replace later to support redis -->
         <!-- <env name="MESSENGER_TRANSPORT_DSN" value="doctrine://default" /> -->
+        <!-- <env name="MESSENGER_TRANSPORT_DSN" value="in-memory://" /> -->
         <env name="MESSENGER_TRANSPORT_DSN" value="in-memory://" />
+        <env name="REDIS_DSN" value="redis://localhost:6379" />
         <server name="TEST_DATABASE_URL" value="sqlite:///%kernel.project_dir%/var/test.db"/>
     </php>
  

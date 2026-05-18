@@ -57,4 +57,4 @@ services:
             
     Predis\Client:
         arguments:
-            - '%env(MESSENGER_TRANSPORT_DSN)%'
+            - '%env(REDIS_DSN)%'
