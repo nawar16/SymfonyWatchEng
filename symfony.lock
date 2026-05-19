@@ -92,6 +92,12 @@
             "./.editorconfig"
         ]
     },
+    "symfony/lock": {
+        "version": "7.4",
+        "recipe": {
+            "version": "5.2"
+        }
+    },
     "symfony/maker-bundle": {
         "version": "v1.67.0"
     },

@@ -166,16 +166,16 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td>
-                  <span :class="['status-badge', `status-${monitor.status.toLowerCase()}`]">
+                  <span :class="['status-badge', `status-${monitor.status?.toLowerCase()}`]">
                     {{ monitor.status }}
                   </span>
-                  <small v-if="monitor.status_code" class="status-code">({{ monitor.status_code }})</small>
+                  <small v-if="monitor.status_code" class="status-code">({{ monitor?.status_code }})</small>
                 </td>
                 <td>
-                  <span v-if="monitor.response_time">{{ monitor.response_time }}ms</span>
+                  <span v-if="monitor.response_time">{{ monitor?.response_time }}ms</span>
                   <span v-else class="text-muted">-</span>
                 </td>
-                <td>{{ monitor.frequency }}s</td>
+                <td>{{ monitor?.frequency }}s</td>
                 <td class="monitor-actions">
                   <button class="danger-button" type="button" @click="removeMonitor(monitor.id)" :disabled="removingMonitorId === monitor.id">
                     {{ removingMonitorId === monitor.id ? 'Removing...' : 'Remove' }}

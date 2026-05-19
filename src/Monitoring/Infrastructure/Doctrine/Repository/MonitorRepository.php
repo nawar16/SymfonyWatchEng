@@ -35,4 +35,18 @@ class MonitorRepository extends ServiceEntityRepository
         $this->getEntityManager()->remove($monitor);
         $this->getEntityManager()->flush();
     }
+    /**
+     * @return Monitor[]
+     */
+    public function findDueMonitors(int $limit = 1000): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.isActive = :active')
+            ->andWhere('m.nextCheckAt <= :now')
+            ->setParameter('active', true)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }   
 }

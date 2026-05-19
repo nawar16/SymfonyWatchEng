@@ -9,6 +9,8 @@ use App\Shared\Domain\TenantScopedInterface;
 use Symfony\Component\Serializer\Annotation\Groups; 
 
 #[ORM\Entity(repositoryClass: MonitorRepository::class)]
+#[ORM\Table(name: "monitors")]
+#[ORM\Index(columns: ["next_check_at", "is_active"])] 
 class Monitor implements TenantScopedInterface
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
@@ -18,6 +20,9 @@ class Monitor implements TenantScopedInterface
     #[ORM\Column(length: 255)]
     #[Groups(['monitor:read'])] 
     private string $url;
+
+    #[ORM\Column(type: "boolval", nullable: true)]
+    private ?bool $isActive = true;
 
     #[ORM\Column]
     #[Groups(['monitor:read'])] 
@@ -32,6 +37,8 @@ class Monitor implements TenantScopedInterface
 
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: "datetime_immutable", nullable: true)]
+    private ?\DateTimeImmutable $nextCheckAt = null;
 
     public function __construct(string $url, int $frequency, Tenant $tenant)
     {
@@ -39,6 +46,10 @@ class Monitor implements TenantScopedInterface
         $this->frequency = $frequency;
         $this->tenant = $tenant;
         $this->createdAt = new \DateTimeImmutable();
+        $this->isActive = true;
+        $randomDelay = rand(0, $frequency);
+        $this->nextCheckAt = (new \DateTimeImmutable())->modify("+{$randomDelay} seconds");
+
     }
 
     public function getId(): ?int { return $this->id; }
@@ -48,6 +59,7 @@ class Monitor implements TenantScopedInterface
     public function setFrequency(int $frequency): void { $this->frequency = $frequency; }
     public function getExpectedStatusCode(): int { return $this->expectedStatusCode; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getNextCheckAt(): ?\DateTimeImmutable { return $this->nextCheckAt; }
     public function getTenant(): ?Tenant
     {
         return $this->tenant;
@@ -55,8 +67,10 @@ class Monitor implements TenantScopedInterface
     public function setTenant(?Tenant $tenant): static
     {
         $this->tenant = $tenant;
-
         return $this;
     }
-
+    public function calculateNextCheck(): void
+    {
+        $this->nextCheckAt = (new \DateTimeImmutable())->modify("+{$this->frequency} seconds");
+    }
 }
