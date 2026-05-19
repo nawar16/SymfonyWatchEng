@@ -21,7 +21,7 @@ class Monitor implements TenantScopedInterface
     #[Groups(['monitor:read'])] 
     private string $url;
 
-    #[ORM\Column(type: "boolval", nullable: true)]
+    #[ORM\Column(type: "boolean")]
     private ?bool $isActive = true;
 
     #[ORM\Column]
