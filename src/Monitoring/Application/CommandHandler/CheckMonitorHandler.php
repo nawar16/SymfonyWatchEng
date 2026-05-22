@@ -5,11 +5,13 @@ namespace App\Monitoring\Application\CommandHandler;
 use App\Monitoring\Domain\Service\PingServiceInterface;
 use App\Monitoring\Application\Command\CheckMonitorCommand;
 use App\Monitoring\Domain\Entity\HealthCheck;
+use App\Monitoring\Domain\Service\IncidentEngineInterface;
 use App\Monitoring\Infrastructure\Doctrine\Repository\HealthCheckRepository;
 use App\Monitoring\Infrastructure\Doctrine\Repository\MonitorRepository;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Monitoring\Domain\Service\MonitorStateStoreInterface;
+use App\Monitoring\Infrastructure\Service\IncidentEngine;
 
 #[AsMessageHandler]
 class CheckMonitorHandler
@@ -18,7 +20,8 @@ class CheckMonitorHandler
         private MonitorRepository $monitorRepository,
         private HealthCheckRepository $healthCheckRepository,
         private PingServiceInterface $pingService,
-        private MonitorStateStoreInterface $stateStore 
+        private MonitorStateStoreInterface $stateStore ,
+        private IncidentEngine $incidentEngine 
     ) {}
 
     public function __invoke(CheckMonitorCommand $command): void
@@ -42,18 +45,12 @@ class CheckMonitorHandler
             $result['response_time'],
             $result['status_code']
         );
-        if (!$result['success']) {
-            $currentFailures = $this->stateStore->incrementFailures($monitor->getId());
-            if ($currentFailures === 3) {
-                //TODO: incident engine logic here
-                $this->stateStore->setActiveIncident($monitor->getId(), [
-                    'incident_id' => bin2hex(random_bytes(4)), 
-                    'started_at' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM)
-                ]);
-            }
-        } else {
-            $this->stateStore->resetFailures($monitor->getId());
-            $this->stateStore->clearActiveIncident($monitor->getId());
-        }
+        $errorMsg = $result['success'] ? '' : "HTTP status check returned code: " . $result['status_code'];
+        $this->incidentEngine->handleSignal(
+            $monitor->getId(),
+            $result['success'],
+            $result['status_code'],
+            $errorMsg
+        );
     }
 }
