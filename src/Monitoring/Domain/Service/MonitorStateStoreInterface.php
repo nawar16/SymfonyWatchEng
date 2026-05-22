@@ -11,4 +11,5 @@ interface MonitorStateStoreInterface
     public function clearActiveIncident(int $monitorId): void;
     public function getStatusSnapshot(int $id): ?array;
     public function hasActiveIncident(int $id): bool;
+    public function getActiveIncidentId(int $monitorId): ?int;
 }

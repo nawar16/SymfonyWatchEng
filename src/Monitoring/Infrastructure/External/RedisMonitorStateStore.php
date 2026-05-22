@@ -58,4 +58,13 @@ class RedisMonitorStateStore implements MonitorStateStoreInterface
         $key = sprintf('monitor:%d:incident', $monitorId);
         return (bool) $this->redis->exists($key);
     }
+    public function getActiveIncidentId(int $monitorId): ?int
+    {
+        $rawJson = $this->redis->get(sprintf('monitor:%d:incident', $monitorId));
+        if (!$rawJson) {
+            return null;
+        }
+        $data = json_decode($rawJson, true);
+        return $data['incident_id'] ?? null;
+    }
 }

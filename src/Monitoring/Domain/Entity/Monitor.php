@@ -71,6 +71,7 @@ class Monitor implements TenantScopedInterface
     }
     public function calculateNextCheck(): void
     {
+        //load spreading by time distribution
         $this->nextCheckAt = (new \DateTimeImmutable())->modify("+{$this->frequency} seconds");
     }
 }
