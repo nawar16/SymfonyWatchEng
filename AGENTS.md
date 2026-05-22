@@ -44,3 +44,10 @@
    * **Key**: `monitor:{id}:incident`
    * **Type**: `json string`
    * **Use Case**: Quick lookup dashboard tags (`{"incident_id": int, "started_at": "string"}`) to avoid cross-table MySQL joins.
+
+## Scheduler & Concurrency Rules
+- **Keep it Separated**: Don't mix database logic with schedule logic. The scheduler is just a simple alarm clock that wakes up the system every 1 minute with a `TriggerMonitorChecksCommand`.
+- **The Orchestrator Runs the Loop**: The `TriggerMonitorChecksHandler` finds ready monitors, handles locks, updates timestamps, and trigger `CheckMonitorCommand` worker jobs.
+- **Locking Prevents Double Checking**: Always use a 55-second Redis lock (`SharedLockInterface`) per monitor ID, to stop multiple app servers from checking the exact same monitor at the same time.
+- **Never flush inside loops**: Handel all the updates in memory and run a single `$entityManager->flush()` at the end to keep database transactions fast.
+- **Testing Note**: Symfony's concrete `Lock` class is `final`. When writing unit tests for the handler, you have to mock `SharedLockInterface` instead, to not crash PHPUnit.
