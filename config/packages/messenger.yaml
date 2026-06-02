@@ -5,5 +5,5 @@ framework:
 
         routing:
             'App\Monitoring\Application\Command\CheckMonitorCommand': async
-            'App\Monitor\Domain\Event\IncidentCreatedEvent': async
-            'App\Monitor\Domain\Event\IncidentResolvedEvent': async
+            'App\Monitoring\Domain\Event\IncidentCreatedEvent': async
+            'App\Monitoring\Domain\Event\IncidentResolvedEvent': async

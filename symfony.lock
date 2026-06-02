@@ -98,6 +98,12 @@
             "version": "5.2"
         }
     },
+    "symfony/mailer": {
+        "version": "7.4",
+        "recipe": {
+            "version": "4.3"
+        }
+    },
     "symfony/maker-bundle": {
         "version": "v1.67.0"
     },
