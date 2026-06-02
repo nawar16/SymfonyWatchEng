@@ -10,6 +10,7 @@ use App\Monitoring\Application\Command\CheckMonitorCommand;
 use App\Monitoring\Application\CommandHandler\CheckMonitorHandler;
 use App\Monitoring\Infrastructure\Doctrine\Repository\HealthCheckRepository;
 use App\Monitoring\Infrastructure\Doctrine\Repository\MonitorRepository;
+use App\Monitoring\Infrastructure\Service\IncidentEngine;
 use App\Tenancy\Domain\Entity\Tenant;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -19,11 +20,13 @@ class CheckMonitorHandlerTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;
     private CheckMonitorHandler $handler;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject&PingServiceInterface */
     private $pingServiceMock;
     /** @var \PHPUnit\Framework\MockObject\MockObject&MonitorStateStoreInterface */
     private $stateStoreMock;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&IncidentEngine */
+    private IncidentEngine $incidentEngineMock;
 
     protected function setUp(): void
     {
@@ -40,12 +43,15 @@ class CheckMonitorHandlerTest extends KernelTestCase
         $schemaTool->createSchema($metadata);
         $this->pingServiceMock = $this->createMock(PingServiceInterface::class);
         $this->stateStoreMock = $this->createMock(MonitorStateStoreInterface::class);
+        $this->incidentEngineMock = $this->createMock(IncidentEngine::class);
+        
         $this->handler = new CheckMonitorHandler(
           //  $this->entityManager->getRepository(Monitor::class),
             $container->get(MonitorRepository::class),
             $container->get(HealthCheckRepository::class),
             $this->pingServiceMock,
-            $this->stateStoreMock
+            $this->stateStoreMock,
+            $this->incidentEngineMock
         );
     }
 
@@ -64,19 +70,19 @@ class CheckMonitorHandlerTest extends KernelTestCase
                 'response_time' => 120,
                 'success' => true
             ]);
+
         $this->stateStoreMock->expects($this->once())
             ->method('updateStatus')
             ->with($monitor->getId(), 'UP', 120, 200);
 
-        $this->stateStoreMock->expects($this->once())
-            ->method('resetFailures')
-            ->with($monitor->getId());
+        $this->incidentEngineMock->expects($this->once())
+            ->method('handleSignal')
+            ->with($monitor->getId(), true, 200, '');
 
-        $this->stateStoreMock->expects($this->once())
-            ->method('clearActiveIncident')
-            ->with($monitor->getId());
         $command = new CheckMonitorCommand($monitor->getId());
         ($this->handler)($command);
+        
+
         $healthChecks = $this->entityManager->getRepository(HealthCheck::class)->findBy([
             'monitorId' => $monitor->getId()
         ]);
@@ -107,15 +113,27 @@ class CheckMonitorHandlerTest extends KernelTestCase
         $this->stateStoreMock->expects($this->once())
             ->method('updateStatus')
             ->with($monitor->getId(), 'DOWN', 450, 500);
-        $this->stateStoreMock->expects($this->once())
-            ->method('incrementFailures')
-            ->with($monitor->getId())
-            ->willReturn(3);
-        $this->stateStoreMock->expects($this->once())
-            ->method('setActiveIncident')
-            ->with($monitor->getId(), self::callback(function ($incidentData) {
-                return isset($incidentData['incident_id']) && isset($incidentData['started_at']);
-            }));
+
+
+        // $this->stateStoreMock->expects($this->once())
+        //     ->method('incrementFailures')
+        //     ->with($monitor->getId())
+        //     ->willReturn(3);
+        // $this->stateStoreMock->expects($this->once())
+        //     ->method('setActiveIncident')
+        //     ->with($monitor->getId(), self::callback(function ($incidentData) {
+        //         return isset($incidentData['incident_id']) && isset($incidentData['started_at']);
+        //     }));
+
+        $this->incidentEngineMock->expects($this->once())
+            ->method('handleSignal')
+            ->with(
+                $monitor->getId(), 
+                false, 
+                500, 
+                'HTTP status check returned code: 500'
+        );
+
         $command = new CheckMonitorCommand($monitor->getId());
         ($this->handler)($command);
 
