@@ -58,3 +58,9 @@ services:
     Predis\Client:
         arguments:
             - '%env(REDIS_DSN)%'
+
+    services:
+    App\Monitoring\Infrastructure\External\SymfonyNotificationSender:
+        arguments:
+            $slackWebhookUrl: '%env(SLACK_WEBHOOK_URL)%'
+            $adminEmailAddress: '%env(ADMIN_EMAIL_ADDRESS)%'
