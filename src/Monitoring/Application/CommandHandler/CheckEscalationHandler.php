@@ -33,18 +33,12 @@ class CheckEscalationHandler
         $monitorId = $incident->getMonitorId();
         //step 0
         if ($currentStepIndex === 0) {
-            $rule = $this->entityManager->getRepository(NotificationRule::class)
-                ->findOneBy(['monitorId' => $monitorId]);
-
-            $channels = $rule ? $rule->getChannels() : ['email'];
-            foreach ($channels as $channel) {
-                $this->notificationSender->sendEscalationAlert(
-                    $incident->getId(), 
-                    $monitorId, 
-                    $channel, 
-                    "Monitor down: " . $incident->getErrorMessage()
-                );
-            }
+            //the initial alert
+            $this->notificationSender->sendIncidentAlert(
+                $incident->getId(), 
+                $monitorId, 
+                "Monitor down: " . $incident->getErrorMessage()
+            );
             $firstStep = $this->entityManager->getRepository(EscalationStep::class)
                 ->findOneBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
             if ($firstStep) {
@@ -74,7 +68,7 @@ class CheckEscalationHandler
 
             //next tier
             $nextStepIndex = $currentStepIndex + 1;
-            $nextArrayIndex = $nextStepIndex - 1;
+            $nextArrayIndex = $currentStepIndex;
             if (isset($steps[$nextArrayIndex])) {
                 $delaySeconds = ($steps[$nextArrayIndex]->getEscalateAfterMinutes() - $currentStep->getEscalateAfterMinutes()) * 60;
                 $this->commandBus->dispatch(
