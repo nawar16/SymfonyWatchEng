@@ -44,6 +44,17 @@ class SymfonyNotificationSender implements NotificationSenderInterface
         );
     }
 
+    public function sendEscalationAlert(int $incidentId, int $monitorId, string $channel, string $message): void
+    {
+        $payload = sprintf("*ESCALATION STAGE ALERT* \n*Incident:* #%d | *Monitor:* #%d\n%s", $incidentId, $monitorId, $message);
+        match (strtolower($channel)) {
+            'slack' => $this->sendSlackMessage($payload),
+            'discord' => $this->sendDiscordMessage($payload),
+            'email' => $this->sendEmailAlert(sprintf('Escalation Alert for Incident #%d', $incidentId), $payload),
+            default => throw new \InvalidArgumentException(sprintf('Unsupported channel "%s"', $channel))
+        };
+    }
+
     private function sendSlackMessage(string $markdownText): void
     {
         try {

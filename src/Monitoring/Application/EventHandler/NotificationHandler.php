@@ -33,7 +33,7 @@ class NotificationHandler
             if ($rule->isOnlyBusinessHours() && !$this->isBusinessHours())
                 return; 
 
-            //the delay config from the user
+            //delay rule
             if ($rule->getDelayMinutes() > 0) {
                 $this->commandBus->dispatch(
                     new CheckEscalationCommand($event->incidentId, 0),
@@ -45,7 +45,10 @@ class NotificationHandler
         //no delay rule
         $channels = $rule ? $rule->getChannels() : ['email'];
         foreach ($channels as $channel) 
-            $this->notificationSender->send($channel, "Monitor down: " . $event->errorMessage);
+            $this->notificationSender->sendEscalationAlert($event->incidentId, $monitorId, $channel, "Monitor down: " . $event->errorMessage);
+
+
+
 
         $firstStep = $this->entityManager->getRepository(EscalationStep::class)
             ->findOneBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
