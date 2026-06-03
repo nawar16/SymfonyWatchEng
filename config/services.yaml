@@ -64,3 +64,4 @@ services:
         arguments:
             $slackWebhookUrl: '%env(SLACK_WEBHOOK_URL)%'
             $adminEmailAddress: '%env(ADMIN_EMAIL_ADDRESS)%'
+            $discordWebhookUrl: '%env(DISCORD_WEBHOOK_URL)%'

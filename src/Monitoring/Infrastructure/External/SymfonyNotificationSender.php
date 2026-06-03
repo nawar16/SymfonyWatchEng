@@ -12,9 +12,10 @@ class SymfonyNotificationSender implements NotificationSenderInterface
     public function __construct(
         private HttpClientInterface $httpClient,
         private MailerInterface $mailer,
+        private string $discordWebhookUrl,
         private string $slackWebhookUrl,
         private string $adminEmailAddress
-    ) {}
+    ) {} 
 
     public function sendIncidentAlert(int $incidentId, int $monitorId, string $message): void
     {
@@ -66,4 +67,14 @@ class SymfonyNotificationSender implements NotificationSenderInterface
         } catch (\Exception $e) {
         }
     }
+
+    private function sendDiscordMessage(string $text): void
+    {
+        try {
+            $this->httpClient->request('POST', $this->discordWebhookUrl, [
+                'json' => ['content' => $text]
+            ]);
+        } catch (\Exception $e) {}
+    }
+
 }
