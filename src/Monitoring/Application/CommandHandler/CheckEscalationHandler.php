@@ -5,6 +5,7 @@ namespace App\Monitoring\Application\CommandHandler;
 use App\Monitoring\Application\Command\CheckEscalationCommand;
 use App\Monitoring\Domain\Entity\Incident;
 use App\Monitoring\Domain\Entity\EscalationStep;
+use App\Monitoring\Domain\Entity\NotificationRule;
 use App\Monitoring\Domain\Service\NotificationSenderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -28,22 +29,54 @@ class CheckEscalationHandler
             return;
         }
 
-        //all escalation levels for this monitor
-        $steps = $this->entityManager->getRepository(EscalationStep::class)
-            ->findBy(['monitorId' => $incident->getMonitorId()], ['escalateAfterMinutes' => 'ASC']);
         $currentStepIndex = $command->currentStepIndex;
+        $monitorId = $incident->getMonitorId();
+        //step 0
+        if ($currentStepIndex === 0) {
+            $rule = $this->entityManager->getRepository(NotificationRule::class)
+                ->findOneBy(['monitorId' => $monitorId]);
 
-        if (isset($steps[$currentStepIndex])) {
+            $channels = $rule ? $rule->getChannels() : ['email'];
+            foreach ($channels as $channel) {
+                $this->notificationSender->sendEscalationAlert(
+                    $incident->getId(), 
+                    $monitorId, 
+                    $channel, 
+                    "Monitor down: " . $incident->getErrorMessage()
+                );
+            }
+            $firstStep = $this->entityManager->getRepository(EscalationStep::class)
+                ->findOneBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
+            if ($firstStep) {
+                $this->commandBus->dispatch(
+                    new CheckEscalationCommand($incident->getId(), 1),
+                    [new DelayStamp($firstStep->getEscalateAfterMinutes() * 60 * 1000)]
+                );
+            }
+            return;
+        }
+
+        //other steps 1, 2, 3...
+        $steps = $this->entityManager->getRepository(EscalationStep::class)
+            ->findBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
+        $arrayIndex = $currentStepIndex - 1;
+
+        if (isset($steps[$arrayIndex])) {
             /** @var EscalationStep $currentStep */
-            $currentStep = $steps[$currentStepIndex];
+            $currentStep = $steps[$arrayIndex];
 
-            $this->notificationSender->sendEscalationAlert($incident->getId(), $incident->getMonitorId(), $currentStep->getChannel(), 
-            sprintf("ESCALATION LEVEL %d: Monitor remains DOWN!", $currentStepIndex + 1));
+            $this->notificationSender->sendEscalationAlert(
+                $incident->getId(), 
+                $monitorId, 
+                $currentStep->getChannel(), 
+                sprintf("ESCALATION LEVEL %d: Monitor remains DOWN!", $currentStepIndex)
+            );
 
-            //next escalation milestone
+            //next tier
             $nextStepIndex = $currentStepIndex + 1;
-            if (isset($steps[$nextStepIndex])) {
-                $delaySeconds = ($steps[$nextStepIndex]->getEscalateAfterMinutes() - $currentStep->getEscalateAfterMinutes()) * 60;
+            $nextArrayIndex = $nextStepIndex - 1;
+            if (isset($steps[$nextArrayIndex])) {
+                $delaySeconds = ($steps[$nextArrayIndex]->getEscalateAfterMinutes() - $currentStep->getEscalateAfterMinutes()) * 60;
                 $this->commandBus->dispatch(
                     new CheckEscalationCommand($incident->getId(), $nextStepIndex),
                     [new DelayStamp($delaySeconds * 1000)]

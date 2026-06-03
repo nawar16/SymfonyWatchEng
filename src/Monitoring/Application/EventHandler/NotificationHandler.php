@@ -26,38 +26,23 @@ class NotificationHandler
     {
         $monitorId = $event->monitorId;
         //TODO: implement the cooldown protection here
-
         $rule = $this->entityManager->getRepository(NotificationRule::class)
             ->findOneBy(['monitorId' => $monitorId]);
-        if ($rule) {
-            if ($rule->isOnlyBusinessHours() && !$this->isBusinessHours())
-                return; 
-
-            //delay rule
-            if ($rule->getDelayMinutes() > 0) {
-                $this->commandBus->dispatch(
-                    new CheckEscalationCommand($event->incidentId, 0),
-                    [new DelayStamp($rule->getDelayMinutes() * 60 * 1000)] 
-                );
-                return;
-            }
+            
+        if ($rule && $rule->isOnlyBusinessHours() && !$this->isBusinessHours()) {
+            return; 
         }
-        //no delay rule
-        $channels = $rule ? $rule->getChannels() : ['email'];
-        foreach ($channels as $channel) 
-            $this->notificationSender->sendEscalationAlert($event->incidentId, $monitorId, $channel, "Monitor down: " . $event->errorMessage);
-
-
-
-
-        $firstStep = $this->entityManager->getRepository(EscalationStep::class)
-            ->findOneBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
-        if ($firstStep) {
-            $this->commandBus->dispatch(
-                new CheckEscalationCommand($event->incidentId, 1),
-                [new DelayStamp($firstStep->getEscalateAfterMinutes() * 60 * 1000)]
-            );
+        $delayMinutes = $rule ? $rule->getDelayMinutes() : 0;
+        $stamps = [];
+        if ($delayMinutes > 0) {
+            $stamps[] = new DelayStamp($delayMinutes * 60 * 1000);
         }
+
+        //handler via step index 0
+        $this->commandBus->dispatch(
+            new CheckEscalationCommand($event->incidentId, 0),
+            $stamps
+        );
     }
 
     #[AsMessageHandler]
