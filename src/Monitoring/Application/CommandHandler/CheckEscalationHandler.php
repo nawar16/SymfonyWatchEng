@@ -37,7 +37,7 @@ class CheckEscalationHandler
             $this->notificationSender->sendIncidentAlert(
                 $incident->getId(), 
                 $monitorId, 
-                "Monitor down: " . $incident->getErrorMessage()
+                "Monitor down: " . $incident->getLastError()
             );
             $firstStep = $this->entityManager->getRepository(EscalationStep::class)
                 ->findOneBy(['monitorId' => $monitorId], ['escalateAfterMinutes' => 'ASC']);
