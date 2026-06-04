@@ -1,9 +1,15 @@
 framework:
     messenger:
         transports:
-            async: '%env(MESSENGER_TRANSPORT_DSN)%'
+            async: 
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
 
         routing:
             'App\Monitoring\Application\Command\CheckMonitorCommand': async
             'App\Monitoring\Domain\Event\IncidentCreatedEvent': async
             'App\Monitoring\Domain\Event\IncidentResolvedEvent': async
+            'App\Monitoring\Application\Command\CheckEscalationCommand': async

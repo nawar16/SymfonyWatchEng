@@ -48,9 +48,9 @@ class NotificationHandler
     #[AsMessageHandler]
     public function onIncidentResolved(IncidentResolvedEvent $event): void
     {
-        // recovery notification 
+        $this->notificationSender->sendResolutionAlert($event->incidentId, $event->monitorId);
     }
-
+    
     private function isBusinessHours(): bool
     {
         $currentHour = (int)(new \DateTimeImmutable())->format('H');
