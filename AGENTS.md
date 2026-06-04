@@ -51,3 +51,9 @@
 - **Locking Prevents Double Checking**: Always use a 55-second Redis lock (`SharedLockInterface`) per monitor ID, to stop multiple app servers from checking the exact same monitor at the same time.
 - **Never flush inside loops**: Handel all the updates in memory and run a single `$entityManager->flush()` at the end to keep database transactions fast.
 - **Testing Note**: Symfony's concrete `Lock` class is `final`. When writing unit tests for the handler, you have to mock `SharedLockInterface` instead, to not crash PHPUnit.
+
+## Incident Escalation & Notification Rules
+- **Unified Event Pipeline**: All alerting, alerting rules, and escalations must go through the `NotificationHandler` reacting asynchronously to `IncidentCreatedEvent` and `IncidentResolvedEvent`.
+- **Timer-Driven Escalation**: Escalation timelines must use deferred queue tasks via `CheckEscalationCommand` loaded with Symfony Messenger's `DelayStamp`.
+- **Zero-Delay Uniformity Rule**: The `NotificationHandler` always dispatches a `CheckEscalationCommand` for step index `0` immediately upon incident creation. Initial notification rules (delays, business hour) are evaluated inside the timeline engine rather than separating entry points.
+- **Circuit-Breaker Safety**: The `CheckEscalationHandler` must check the incident lifecycle state dynamically upon payload consumption. If the target incident is missing or transitions to `RESOLVED`, the execution loop must exit immediately to kill further notifications.
