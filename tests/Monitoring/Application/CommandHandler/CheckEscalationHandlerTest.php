@@ -105,5 +105,57 @@ class CheckEscalationHandlerTest extends KernelTestCase
 
         $this->handler->__invoke($command);
     }
+    
+    public function testProgressiveEscalationProcessesIntervalDeltaAndRequeues(): void
+    {
+        $incidentId = 123;
+        $monitorId = 45;
+        $command = new CheckEscalationCommand($incidentId, 1); //step 1
 
+        $incidentMock = $this->createMock(Incident::class);
+        $incidentMock->method('getId')->willReturn($incidentId);
+        $incidentMock->method('getMonitorId')->willReturn($monitorId);
+        $incidentMock->method('getStatus')->willReturn('active');
+
+        $incidentRepo = $this->createMock(EntityRepository::class);
+        $incidentRepo->method('find')->with($incidentId)->willReturn($incidentMock);
+        //discord at minute 10
+        $stepOneMock = $this->createMock(EscalationStep::class);
+        $stepOneMock->method('getChannel')->willReturn('discord');
+        $stepOneMock->method('getEscalateAfterMinutes')->willReturn(10);
+        //sms at minute 25
+        $stepTwoMock = $this->createMock(EscalationStep::class);
+        $stepTwoMock->method('getChannel')->willReturn('sms');
+        $stepTwoMock->method('getEscalateAfterMinutes')->willReturn(25);
+
+        $stepRepo = $this->createMock(EntityRepository::class);
+        $stepRepo->method('findBy')->with(
+            ['monitorId' => $monitorId],
+            ['escalateAfterMinutes' => 'ASC']
+        )->willReturn([$stepOneMock, $stepTwoMock]);
+
+        $this->entityManager->method('getRepository')->willReturnMap([
+            [Incident::class, $incidentRepo],
+            [EscalationStep::class, $stepRepo],
+        ]);
+
+        $this->notificationSender->expects($this->once())
+            ->method('sendEscalationAlert')
+            ->with($incidentId, $monitorId, 'discord', 'ESCALATION LEVEL 1: Monitor remains DOWN!');
+
+        $this->commandBus->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                $this->callback(function (CheckEscalationCommand $cmd) use ($incidentId) {
+                    return $cmd->incidentId === $incidentId && $cmd->currentStepIndex === 2;
+                }),
+                $this->callback(function (array $stamps) {
+                    /** @var DelayStamp $delayStamp */
+                    $delayStamp = $stamps[0] ?? null;
+                    return $delayStamp instanceof DelayStamp && $delayStamp->getDelay() === 900000;
+                })
+            )->willReturn(new Envelope(new \stdClass()));
+
+        $this->handler->__invoke($command);
+    }
 }
