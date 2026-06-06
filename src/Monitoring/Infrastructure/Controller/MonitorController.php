@@ -3,6 +3,7 @@
 namespace App\Monitoring\Infrastructure\Controller;
 
 use App\Monitoring\Application\DTO\MonitorInput;
+use App\Monitoring\Application\Service\CreateMonitorHandler;
 use App\Monitoring\Application\Service\MonitorService;
 use App\Monitoring\Domain\Entity\Monitor;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,9 +19,12 @@ class MonitorController extends AbstractController
     ) {}
 
     #[Route('', methods: ['POST'])]
-    public function create(#[MapRequestPayload] MonitorInput $input): JsonResponse
+    public function create(#[MapRequestPayload] MonitorInput $input,
+      CreateMonitorHandler $handler
+    ): JsonResponse
     {
-        $monitor = $this->service->create($input);
+        //$monitor = $this->service->create($input);
+        $monitor = $handler->handle($input);
         return $this->json($monitor, 201, [], [
             'groups' => 'monitor:read'
         ]);

@@ -11,11 +11,10 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Monitoring\Domain\Service\MonitorStateStoreInterface;
+use App\Monitoring\Domain\ValueObject\SubscriptionLimit;
 
-class MonitorService
+class MonitorService 
 {
-    private const MAX_MONITORS = 50;
-
     public function __construct(
         private MonitorRepository $repository,
         private TenantContext $tenantContext,
@@ -26,8 +25,8 @@ class MonitorService
     public function create(MonitorInput $input): Monitor
     {
         $tenant = $this->tenantContext->getCurrentTenant();
-        if ($this->repository->countByTenant($tenant) >= self::MAX_MONITORS) {
-            throw new BadRequestHttpException("Limit of " . self::MAX_MONITORS . " monitors reached.");
+        if ($this->repository->countByTenant($tenant) >= SubscriptionLimit::MAX_MONITORS->value) {
+            throw new BadRequestHttpException("Limit of " . SubscriptionLimit::MAX_MONITORS->value . " monitors reached.");
         }
         if ($this->repository->findOneBy(['url' => $input->url, 'tenant' => $tenant])) {
             throw new BadRequestHttpException("This URL is already being monitored.");

@@ -5,11 +5,12 @@ namespace App\Monitoring\Infrastructure\Service;
 use App\Monitoring\Domain\Entity\Incident;
 use App\Monitoring\Domain\Event\IncidentCreatedEvent;
 use App\Monitoring\Domain\Event\IncidentResolvedEvent;
+use App\Monitoring\Domain\Service\IncidentEngineInterface;
 use App\Monitoring\Domain\Service\MonitorStateStoreInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-class IncidentEngine
+class IncidentEngine implements IncidentEngineInterface
 {
     private const CONSECUTIVE_FAILURE_THRESHOLD = 3;
 
