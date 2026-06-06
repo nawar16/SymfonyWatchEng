@@ -23,11 +23,16 @@ class MonitorController extends AbstractController
       CreateMonitorHandler $handler
     ): JsonResponse
     {
-        //$monitor = $this->service->create($input);
-        $monitor = $handler->handle($input);
-        return $this->json($monitor, 201, [], [
-            'groups' => 'monitor:read'
-        ]);
+        try {
+            $monitor = $handler->handle($input);
+            return $this->json($monitor, 201, [], [
+                'groups' => 'monitor:read'
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => $e->getMessage()
+            ], 400);
+        }
     }
 
     #[Route('', methods: ['GET'])]

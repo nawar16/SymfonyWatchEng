@@ -93,7 +93,7 @@ final class MonitorControllerTest extends WebTestCase
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
-        self::assertStringContainsString('already being monitored', $this->client->getResponse()->getContent());
+        self::assertStringContainsString('This URL is already being monitored.', $this->client->getResponse()->getContent());
     }
 
     public function testListOnlyReturnsTenantsOwnMonitors(): void
