@@ -1,19 +1,26 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createMonitor, deleteMonitor, loadDashboard, loadMonitors } from '../services/api';
+import { createMonitor, deleteMonitor, loadDashboard, loadMonitors, saveMonitorNotificationRule } from '../services/api';
 import { clearSession, getSavedUser } from '../services/auth';
 
 const router = useRouter();
 const dashboard = ref(null);
 const monitors = ref([]);
 const monitorUrl = ref('');
+const editingRuleMonitorId = ref(null);
+const activeRule = ref({
+  channels: ['email'],
+  delayMinutes: 0,
+  isOnlyBusinessHours: false,
+});
 const error = ref('');
 const monitorError = ref('');
 const monitorFeedback = ref('');
 const isLoading = ref(true);
 const isMonitorsLoading = ref(false);
 const isCreatingMonitor = ref(false);
+const isSavingRule = ref(false);
 const removingMonitorId = ref(null);
 const savedUser = getSavedUser();
 
@@ -65,6 +72,42 @@ async function addMonitor() {
   }
 }
 
+function toggleRuleEditor(monitorId) {
+  if (editingRuleMonitorId.value === monitorId) {
+    editingRuleMonitorId.value = null;
+    resetActiveRule();
+    return;
+  }
+
+  editingRuleMonitorId.value = monitorId;
+  resetActiveRule();
+}
+
+async function saveNotificationRule(monitorId) {
+  monitorError.value = '';
+  monitorFeedback.value = '';
+  isSavingRule.value = true;
+
+  try {
+    await saveMonitorNotificationRule(monitorId, activeRule.value);
+    editingRuleMonitorId.value = null;
+    resetActiveRule();
+    monitorFeedback.value = 'Notification rules saved.';
+  } catch (exception) {
+    monitorError.value = exception.message;
+  } finally {
+    isSavingRule.value = false;
+  }
+}
+
+function resetActiveRule() {
+  activeRule.value = {
+    channels: ['email'],
+    delayMinutes: 0,
+    isOnlyBusinessHours: false,
+  };
+}
+
 async function removeMonitor(id) {
   monitorError.value = '';
   monitorFeedback.value = '';
@@ -97,10 +140,6 @@ onMounted(async () => {
         <p class="eyebrow">Dashboard</p>
         <h1>{{ dashboard?.message || 'Workspace overview' }}</h1>
       </div>
-
-      <!-- <button class="secondary-button" type="button" @click="load" :disabled="isLoading">
-        {{ isLoading ? 'Refreshing...' : 'Refresh' }}
-      </button> -->
     </div>
 
     <p v-if="error" class="notice error">{{ error }}</p>
@@ -123,7 +162,6 @@ onMounted(async () => {
         <div class="monitor-header">
           <div>
             <span>Monitor management</span>
-            <!-- <strong>Website checks</strong> -->
           </div>
 
           <button class="secondary-button" type="button" @click="loadMonitorList" :disabled="isMonitorsLoading">
@@ -132,14 +170,16 @@ onMounted(async () => {
         </div>
 
         <form class="monitor-form" @submit.prevent="addMonitor">
-          <label>
-            Website URL
-            <input v-model="monitorUrl" type="url" required placeholder="https://example.com" />
-          </label>
+          <div class="monitor-url-row">
+            <label>
+              Website URL
+              <input v-model="monitorUrl" type="url" required placeholder="https://example.com" />
+            </label>
 
-          <button class="primary-button" type="submit" :disabled="isCreatingMonitor">
-            {{ isCreatingMonitor ? 'Adding...' : 'Add monitor' }}
-          </button>
+            <button class="primary-button" type="submit" :disabled="isCreatingMonitor">
+              {{ isCreatingMonitor ? 'Adding...' : 'Add monitor' }}
+            </button>
+          </div>
         </form>
 
         <p v-if="monitorError" class="notice error">{{ monitorError }}</p>
@@ -158,30 +198,69 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="monitor in monitors" :key="monitor.id">
-                <td>
-                  <div class="url-wrapper">
-                    <a :href="monitor.url" target="_blank" rel="noreferrer">{{ monitor.url }}</a>
-                    <span v-if="monitor.has_incident" class="badge incident-badge">! INCIDENT</span>
-                  </div>
-                </td>
-                <td>
-                  <span :class="['status-badge', `status-${monitor.status?.toLowerCase()}`]">
-                    {{ monitor.status }}
-                  </span>
-                  <small v-if="monitor.status_code" class="status-code">({{ monitor?.status_code }})</small>
-                </td>
-                <td>
-                  <span v-if="monitor.response_time">{{ monitor?.response_time }}ms</span>
-                  <span v-else class="text-muted">-</span>
-                </td>
-                <td>{{ monitor?.frequency }}s</td>
-                <td class="monitor-actions">
-                  <button class="danger-button" type="button" @click="removeMonitor(monitor.id)" :disabled="removingMonitorId === monitor.id">
-                    {{ removingMonitorId === monitor.id ? 'Removing...' : 'Remove' }}
-                  </button>
-                </td>
-              </tr>
+              <template v-for="monitor in monitors" :key="monitor.id">
+                <tr>
+                  <td>
+                    <div class="url-wrapper">
+                      <a :href="monitor.url" target="_blank" rel="noreferrer">{{ monitor.url }}</a>
+                      <span v-if="monitor.has_incident" class="badge incident-badge">! INCIDENT</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span :class="['status-badge', `status-${monitor.status?.toLowerCase()}`]">
+                      {{ monitor.status }}
+                    </span>
+                    <small v-if="monitor.status_code" class="status-code">({{ monitor?.status_code }})</small>
+                  </td>
+                  <td>
+                    <span v-if="monitor.response_time">{{ monitor?.response_time }}ms</span>
+                    <span v-else class="text-muted">-</span>
+                  </td>
+                  <td>{{ monitor?.frequency }}s</td>
+                  <td class="monitor-actions">
+                    <button class="secondary-button compact-button" type="button" @click="toggleRuleEditor(monitor.id)">
+                      &#9881;&#65039; Rules
+                    </button>
+                    <button class="danger-button compact-button" type="button" @click="removeMonitor(monitor.id)" :disabled="removingMonitorId === monitor.id">
+                      {{ removingMonitorId === monitor.id ? 'Removing...' : 'Remove' }}
+                    </button>
+                  </td>
+                </tr>
+
+                <tr v-if="editingRuleMonitorId === monitor.id" class="rule-editor-row">
+                  <td colspan="5">
+                    <form class="rule-editor-form" @submit.prevent="saveNotificationRule(monitor.id)">
+                      <fieldset class="rule-fieldset">
+                        <legend>Alert channels</legend>
+
+                        <label class="rule-option">
+                          <input v-model="activeRule.channels" type="checkbox" value="slack" />
+                          <small>Slack</small>
+                        </label>
+
+                        <label class="rule-option">
+                          <input v-model="activeRule.channels" type="checkbox" value="email" />
+                          <small>Email</small>
+                        </label>
+                      </fieldset>
+
+                      <label class="rule-field">
+                        <small>Only alert if down for X minutes</small>
+                        <input v-model.number="activeRule.delayMinutes" type="number" min="0" step="1" inputmode="numeric" />
+                      </label>
+
+                      <label class="rule-toggle">
+                        <input v-model="activeRule.isOnlyBusinessHours" type="checkbox" />
+                        <small>Only notify during business hours</small>
+                      </label>
+
+                      <button class="primary-button compact-button" type="submit" :disabled="isSavingRule">
+                        {{ isSavingRule ? 'Saving...' : 'Save Rules' }}
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
@@ -191,3 +270,100 @@ onMounted(async () => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.monitor-form {
+  display: grid;
+  gap: 14px;
+}
+
+.monitor-url-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.compact-button {
+  min-height: 34px;
+  padding: 7px 10px;
+}
+
+.monitor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rule-editor-row td {
+  border-bottom: 1px solid #dce3e1;
+  background: #f8fbfa;
+  padding: 0;
+}
+
+.rule-editor-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 240px) minmax(220px, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  padding: 16px;
+}
+
+.rule-fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rule-fieldset legend,
+.rule-field span,
+.rule-toggle span {
+  width: 100%;
+  color: #33404a;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.rule-option,
+.rule-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #33404a;
+}
+
+.rule-option input,
+.rule-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #116149;
+}
+
+.rule-field {
+  display: grid;
+  gap: 8px;
+}
+
+.rule-field input {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .monitor-url-row {
+    grid-template-columns: 1fr;
+  }
+
+  .monitor-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rule-editor-form {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

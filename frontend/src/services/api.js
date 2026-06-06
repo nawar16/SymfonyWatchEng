@@ -83,6 +83,17 @@ export function createMonitor(url) {
   });
 }
 
+export function saveMonitorNotificationRule(monitorId, notificationRule) {
+  return request(`/api/monitors/${monitorId}/notification-rule`, {
+    method: 'POST',
+    body: JSON.stringify({
+      channels: notificationRule.channels,
+      delayMinutes: notificationRule.delayMinutes,
+      isOnlyBusinessHours: notificationRule.isOnlyBusinessHours,
+    }),
+  });
+}
+
 export function deleteMonitor(id) {
   return request(`/api/monitors/${id}`, {
     method: 'DELETE',

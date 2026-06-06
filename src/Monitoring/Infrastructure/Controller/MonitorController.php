@@ -40,7 +40,7 @@ class MonitorController extends AbstractController
     {
         $monitors = $this->service->listAll();
         return $this->json($monitors, 200);
-        // , [], [
+        // ,200,[], [
         //     'groups' => 'monitor:read'
         // ]);
     }
