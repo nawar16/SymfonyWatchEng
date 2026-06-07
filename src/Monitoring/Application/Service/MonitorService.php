@@ -62,9 +62,9 @@ class MonitorService
             $stepsData = [];
             foreach ($steps as $step) {
                 $stepsData[] = [
-                    'id' => $step->getId(),
-                    'channel' => $step->getChannel(),
-                    'escalateAfterMinutes' => $step->getEscalateAfterMinutes()
+                    'id' => $step?->getId(),
+                    'channel' => $step?->getChannel(),
+                    'escalateAfterMinutes' => $step?->getEscalateAfterMinutes()
                 ];
             }
 

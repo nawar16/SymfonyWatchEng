@@ -4,7 +4,9 @@ namespace App\Tests\Controller;
 
 use App\Tenancy\Domain\Entity\Tenant;
 use App\Identity\Domain\Entity\User;
+use App\Monitoring\Domain\Entity\EscalationStep;
 use App\Monitoring\Domain\Entity\Monitor;
+use App\Monitoring\Domain\Entity\NotificationRule;
 use App\Tenancy\Application\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -98,6 +100,20 @@ final class MonitorControllerTest extends WebTestCase
 
     public function testListOnlyReturnsTenantsOwnMonitors(): void
     {
+
+        $schemaTool = new SchemaTool($this->entityManager);
+        $metadata = [
+            $this->entityManager->getClassMetadata(NotificationRule::class),
+            $this->entityManager->getClassMetadata(EscalationStep::class),
+        ];
+        try {
+            $schemaTool->createSchema($metadata);
+        } catch (\Exception $e) {
+            //table already exists
+        }
+
+
+
         $tenantA = $this->createTenant('Tenant A', 'a');
         $userA = $this->createUser('user@a.com', $tenantA);
         $monA = new Monitor('https://site-a.com', 60, $tenantA);
@@ -117,10 +133,14 @@ final class MonitorControllerTest extends WebTestCase
             'HTTP_HOST' => 'a.localhost',
             'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
         ]);
-
-        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $response = $this->client->getResponse();
+        self::assertSame(200, $response->getStatusCode(), sprintf("API Exception: %s", $response->getContent()));
+        $data = json_decode($response->getContent(), true);
         self::assertCount(1, $data);
         self::assertSame('https://site-a.com', $data[0]['url']);
+        // $data = json_decode($this->client->getResponse()->getContent(), true);
+        // self::assertCount(1, $data);
+        // self::assertSame('https://site-a.com', $data[0]['url']);
     }
 
     public function testDeleteUnauthorizedMonitorFails(): void

@@ -4,8 +4,7 @@ import vue from '@vitejs/plugin-vue';
 const backendUrl = process.env.VITE_BACKEND_URL || 'http://localhost:8080';
 const tenantAwareProxy = {
   target: backendUrl,
-  changeOrigin: true,
-  ws: true,
+  changeOrigin: false,
   configure: (proxy) => {
     proxy.on('proxyReq', (proxyReq, req) => {
       const incomingHost = req.headers.host;
