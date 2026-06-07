@@ -36,4 +36,19 @@ class NotificationRule
     public function getChannels(): array { return $this->channels; }
     public function getDelayMinutes(): int { return $this->delayMinutes; }
     public function isOnlyBusinessHours(): bool { return $this->onlyBusinessHours; }
+    public function setChannels(array $channels): self
+    {
+        $this->channels = $channels;
+        return $this;
+    }
+    public function setDelayMinutes(int $delayMinutes): self
+    {
+        $this->delayMinutes = $delayMinutes;
+        return $this;
+    }
+    public function setOnlyBusinessHours(bool $isOnlyBusinessHours): self
+    {
+        $this->onlyBusinessHours = $isOnlyBusinessHours;
+        return $this;
+    }
 }

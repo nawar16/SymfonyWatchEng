@@ -84,7 +84,8 @@ export function createMonitor(url) {
 }
 
 export function saveMonitorNotificationRule(monitorId, notificationRule) {
-  return request(`/api/monitors/${monitorId}/notification-rule`, {
+  console.log(monitorId)
+  return request("/api/monitors/" + monitorId + "/notification-rule", {
     method: 'POST',
     body: JSON.stringify({
       channels: notificationRule.channels,
@@ -95,7 +96,7 @@ export function saveMonitorNotificationRule(monitorId, notificationRule) {
 }
 
 export function saveMonitorEscalationSteps(monitorId, steps) {
-  return request(`/api/monitors/${monitorId}/escalation-steps`, {
+  return request("/api/monitors/"+ monitorId +"/escalation-steps", {
     method: 'POST',
     body: JSON.stringify({
       steps,
@@ -104,7 +105,7 @@ export function saveMonitorEscalationSteps(monitorId, steps) {
 }
 
 export function deleteMonitor(id) {
-  return request(`/api/monitors/${id}`, {
+  return request("/api/monitors/"+id, {
     method: 'DELETE',
   });
 }

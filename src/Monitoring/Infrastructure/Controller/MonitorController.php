@@ -39,10 +39,10 @@ class MonitorController extends AbstractController
     public function list(): JsonResponse
     {
         $monitors = $this->service->listAll();
-        return $this->json($monitors//, 200);
-        ,200,[], [
-            'groups' => 'monitor:read'
-        ]);
+        return $this->json($monitors, 200);
+        // ,200,[], [
+        //     'groups' => 'monitor:read'
+        // ]);
     }
 
     #[Route('/{id}', methods: ['PUT'])]
