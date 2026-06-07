@@ -83,10 +83,9 @@ export function createMonitor(url) {
   });
 }
 
-export function saveMonitorNotificationRule(monitorId, notificationRule) {
-  console.log(monitorId)
+export function saveMonitorNotificationRule(monitorId, notificationRule, hasExistingRule = false) {
   return request("/api/monitors/" + monitorId + "/notification-rule", {
-    method: 'POST',
+    method: hasExistingRule ? 'PUT' : 'POST',
     body: JSON.stringify({
       channels: notificationRule.channels,
       delayMinutes: notificationRule.delayMinutes,

@@ -75,7 +75,9 @@ async function addMonitor() {
   }
 }
 
-function toggleRuleEditor(monitorId) {
+function toggleRuleEditor(monitor) {
+  const monitorId = monitor.id;
+
   if (editingRuleMonitorId.value === monitorId) {
     editingRuleMonitorId.value = null;
     resetActiveRule();
@@ -83,17 +85,18 @@ function toggleRuleEditor(monitorId) {
   }
 
   editingRuleMonitorId.value = monitorId;
-  resetActiveRule();
+  hydrateActiveRule(monitor.notificationRule);
   ensureEscalationSteps(monitorId);
 }
 
-async function saveNotificationRule(monitorId) {
+async function saveNotificationRule(monitor) {
   monitorError.value = '';
   monitorFeedback.value = '';
   isSavingRule.value = true;
 
   try {
-    await saveMonitorNotificationRule(monitorId, activeRule.value);
+    const savedRule = await saveMonitorNotificationRule(monitor.id, activeRule.value, Boolean(monitor.notificationRule));
+    monitor.notificationRule = savedRule ?? { ...activeRule.value, channels: [...activeRule.value.channels] };
     editingRuleMonitorId.value = null;
     resetActiveRule();
     monitorFeedback.value = 'Notification rules saved.';
@@ -109,6 +112,21 @@ function resetActiveRule() {
     channels: ['email'],
     delayMinutes: 0,
     isOnlyBusinessHours: false,
+  };
+}
+
+function hydrateActiveRule(notificationRule) {
+  if (!notificationRule) {
+    resetActiveRule();
+    return;
+  }
+
+  activeRule.value = {
+    channels: Array.isArray(notificationRule.channels) && notificationRule.channels.length
+      ? [...notificationRule.channels]
+      : ['email'],
+    delayMinutes: Number(notificationRule.delayMinutes) || 0,
+    isOnlyBusinessHours: Boolean(notificationRule.isOnlyBusinessHours),
   };
 }
 
@@ -273,7 +291,7 @@ onMounted(async () => {
                   </td>
                   <td>{{ monitor?.frequency }}s</td>
                   <td class="monitor-actions">
-                    <button class="secondary-button compact-button" type="button" @click="toggleRuleEditor(monitor.id)">
+                    <button class="secondary-button compact-button" type="button" @click="toggleRuleEditor(monitor)">
                       &#9881;&#65039; Rules
                     </button>
                     <button class="danger-button compact-button" type="button" @click="removeMonitor(monitor.id)" :disabled="removingMonitorId === monitor.id">
@@ -284,7 +302,22 @@ onMounted(async () => {
 
                 <tr v-if="editingRuleMonitorId === monitor.id" class="rule-editor-row">
                   <td colspan="5">
-                    <form class="rule-editor-form" @submit.prevent="saveNotificationRule(monitor.id)">
+                    <form class="rule-editor-form" @submit.prevent="saveNotificationRule(monitor)">
+                      <div class="rule-summary" :class="{ 'is-empty': !monitor.notificationRule }">
+                        <template v-if="monitor.notificationRule">
+                          <strong>Saved rule</strong>
+                          <small>
+                            {{ monitor.notificationRule.channels?.join(', ') || 'No channels' }} ·
+                            {{ monitor.notificationRule.delayMinutes }} min delay ·
+                            {{ monitor.notificationRule.isOnlyBusinessHours ? 'Business hours only' : 'Any time' }}
+                          </small>
+                        </template>
+                        <template v-else>
+                          <strong>No saved rule</strong>
+                          <small>Defaults are loaded until you save custom rules.</small>
+                        </template>
+                      </div>
+
                       <fieldset class="rule-fieldset">
                         <legend>Alert channels</legend>
 
@@ -310,7 +343,7 @@ onMounted(async () => {
                       </label>
 
                       <button class="primary-button compact-button" type="submit" :disabled="isSavingRule">
-                        {{ isSavingRule ? 'Saving...' : 'Save Rules' }}
+                        {{ isSavingRule ? 'Saving...' : (monitor.notificationRule ? 'Update Rules' : 'Save Rules') }}
                       </button>
                     </form>
 
@@ -404,10 +437,34 @@ onMounted(async () => {
 
 .rule-editor-form {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 240px) minmax(220px, 1fr) auto;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(180px, 1fr) minmax(180px, 240px) minmax(220px, 1fr) auto;
   gap: 16px;
   align-items: end;
   padding: 16px;
+}
+
+.rule-summary {
+  display: grid;
+  gap: 4px;
+  align-self: stretch;
+  border: 1px solid #dce3e1;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.rule-summary strong {
+  color: #17202a;
+  font-size: 0.92rem;
+}
+
+.rule-summary small {
+  color: #56616b;
+  line-height: 1.45;
+}
+
+.rule-summary.is-empty {
+  border-style: dashed;
 }
 
 .rule-fieldset {

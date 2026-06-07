@@ -49,8 +49,8 @@ class MonitorService
 
         $results = [];
         foreach ($monitors as $monitor) {
-            //$statusData = $this->stateStore->getStatusSnapshot($monitor->getId());
-            $hasIncident = false;//$this->stateStore->hasActiveIncident($monitor->getId());
+            $statusData = $this->stateStore->getStatusSnapshot($monitor->getId());
+            $hasIncident = $this->stateStore->hasActiveIncident($monitor->getId());
 
             $rule = $this->ruleRepository->findByMonitorId($monitor->getId());
             $steps = $this->stepRepository->findByMonitorIdSorted($monitor->getId());
