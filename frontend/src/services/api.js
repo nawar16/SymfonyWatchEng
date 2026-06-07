@@ -103,6 +103,12 @@ export function saveMonitorEscalationSteps(monitorId, steps) {
   });
 }
 
+export function deleteMonitorEscalationStep(monitorId, stepId) {
+  return request("/api/monitors/" + monitorId + "/escalation-steps/" + stepId, {
+    method: 'DELETE',
+  });
+}
+
 export function deleteMonitor(id) {
   return request("/api/monitors/"+id, {
     method: 'DELETE',

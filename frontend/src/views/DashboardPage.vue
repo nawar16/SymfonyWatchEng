@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createMonitor, deleteMonitor, loadDashboard, loadMonitors, saveMonitorEscalationSteps, saveMonitorNotificationRule } from '../services/api';
+import { createMonitor, deleteMonitor, deleteMonitorEscalationStep, loadDashboard, loadMonitors, saveMonitorEscalationSteps, saveMonitorNotificationRule } from '../services/api';
 import { clearSession, getSavedUser } from '../services/auth';
 
 const router = useRouter();
@@ -24,6 +24,7 @@ const isMonitorsLoading = ref(false);
 const isCreatingMonitor = ref(false);
 const isSavingRule = ref(false);
 const isSavingEscalation = ref(false);
+const deletingEscalationStepId = ref(null);
 const removingMonitorId = ref(null);
 const savedUser = getSavedUser();
 
@@ -86,7 +87,7 @@ function toggleRuleEditor(monitor) {
 
   editingRuleMonitorId.value = monitorId;
   hydrateActiveRule(monitor.notificationRule);
-  ensureEscalationSteps(monitorId);
+  hydrateEscalationSteps(monitor);
 }
 
 async function saveNotificationRule(monitor) {
@@ -136,6 +137,16 @@ function ensureEscalationSteps(monitorId) {
   }
 }
 
+function hydrateEscalationSteps(monitor) {
+  escalationStepsByMonitor.value[monitor.id] = Array.isArray(monitor.escalationSteps)
+    ? monitor.escalationSteps.map((step) => ({
+        id: String(step.id),
+        channel: step.channel || 'email',
+        escalateAfterMinutes: Number(step.escalateAfterMinutes) || 0,
+      }))
+    : [];
+}
+
 function addLocalEscalationStep(monitorId = editingRuleMonitorId.value) {
   if (monitorId === null) {
     return;
@@ -143,7 +154,7 @@ function addLocalEscalationStep(monitorId = editingRuleMonitorId.value) {
 
   ensureEscalationSteps(monitorId);
   escalationStepsByMonitor.value[monitorId].push({
-    id: `step-${Date.now()}-${escalationStepSequence++}`,
+    id: `local-step-${Date.now()}-${escalationStepSequence++}`,
     channel: 'email',
     escalateAfterMinutes: 0,
   });
@@ -155,10 +166,34 @@ function sortedEscalationSteps(monitorId) {
   );
 }
 
-function removeLocalEscalationStep(monitorId, stepId) {
+async function removeLocalEscalationStep(monitor, step) {
+  monitorError.value = '';
+  monitorFeedback.value = '';
+  deletingEscalationStepId.value = step.id;
+
+  try {
+    if (isPersistedEscalationStep(step)) {
+      await deleteMonitorEscalationStep(monitor.id, step.id);
+      monitor.escalationSteps = (monitor.escalationSteps || []).filter((savedStep) => String(savedStep.id) !== String(step.id));
+      monitorFeedback.value = 'Escalation step deleted.';
+    }
+
+    removeEscalationStepFromState(monitor.id, step.id);
+  } catch (exception) {
+    monitorError.value = exception.message;
+  } finally {
+    deletingEscalationStepId.value = null;
+  }
+}
+
+function removeEscalationStepFromState(monitorId, stepId) {
   escalationStepsByMonitor.value[monitorId] = (escalationStepsByMonitor.value[monitorId] || []).filter(
     (step) => step.id !== stepId,
   );
+}
+
+function isPersistedEscalationStep(step) {
+  return !String(step.id).startsWith('local-step-');
 }
 
 async function saveEscalationSteps(monitorId) {
@@ -168,11 +203,19 @@ async function saveEscalationSteps(monitorId) {
 
   try {
     const steps = sortedEscalationSteps(monitorId).map((step) => ({
+      ...(isPersistedEscalationStep(step) ? { id: step.id } : {}),
       channel: step.channel,
       escalateAfterMinutes: Number(step.escalateAfterMinutes) || 0,
     }));
 
-    await saveMonitorEscalationSteps(monitorId, steps);
+    const savedSteps = await saveMonitorEscalationSteps(monitorId, steps);
+    const monitor = monitors.value.find((item) => item.id === monitorId);
+
+    if (monitor) {
+      monitor.escalationSteps = Array.isArray(savedSteps) ? savedSteps : steps;
+      hydrateEscalationSteps(monitor);
+    }
+
     monitorFeedback.value = 'Escalation policy saved.';
   } catch (exception) {
     monitorError.value = exception.message;

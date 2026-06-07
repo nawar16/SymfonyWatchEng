@@ -33,7 +33,18 @@ class EscalationStep
         $this->recipient = $recipient;
     }
 
+    public function getId(): string { return $this->id; }
     public function getEscalateAfterMinutes(): int { return $this->escalateAfterMinutes; }
     public function getChannel(): string { return $this->channel; }
     public function getRecipient(): string { return $this->recipient; }
+    public function setChannels(string $channel): self
+    {
+        $this->channel = $channel;
+        return $this;
+    }
+    public function setEscalateAfterMinutes(int $escalateAfterMinutes): self
+    {
+        $this->escalateAfterMinutes = $escalateAfterMinutes;
+        return $this;
+    }
 }
