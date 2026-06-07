@@ -16,7 +16,9 @@ readonly class MonitorResponse
         public ?int $responseTime,
         public ?string $lastCheck,
         public ?int $statusCode,
-        public bool $hasIncident
+        public bool $hasIncident,
+        public ?array $notificationRule = null,
+        public array $escalationSteps = []
     ) {
         $this->id = $monitor->getId();
         $this->url = $monitor->getUrl();
