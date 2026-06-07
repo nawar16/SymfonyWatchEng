@@ -39,7 +39,7 @@ class MonitorService
     public function listAll(): array
     {
         $tenant = $this->tenantContext->getCurrentTenant();
-        #return $this->repository->findAllByTenant($tenant);
+        return $this->repository->findAllByTenant($tenant);
 
         $monitors = $this->repository->findAllByTenant($tenant);
         $results = [];

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createMonitor, deleteMonitor, loadDashboard, loadMonitors, saveMonitorNotificationRule } from '../services/api';
+import { createMonitor, deleteMonitor, loadDashboard, loadMonitors, saveMonitorEscalationSteps, saveMonitorNotificationRule } from '../services/api';
 import { clearSession, getSavedUser } from '../services/auth';
 
 const router = useRouter();
@@ -14,6 +14,8 @@ const activeRule = ref({
   delayMinutes: 0,
   isOnlyBusinessHours: false,
 });
+const escalationStepsByMonitor = ref({});
+let escalationStepSequence = 0;
 const error = ref('');
 const monitorError = ref('');
 const monitorFeedback = ref('');
@@ -21,6 +23,7 @@ const isLoading = ref(true);
 const isMonitorsLoading = ref(false);
 const isCreatingMonitor = ref(false);
 const isSavingRule = ref(false);
+const isSavingEscalation = ref(false);
 const removingMonitorId = ref(null);
 const savedUser = getSavedUser();
 
@@ -81,6 +84,7 @@ function toggleRuleEditor(monitorId) {
 
   editingRuleMonitorId.value = monitorId;
   resetActiveRule();
+  ensureEscalationSteps(monitorId);
 }
 
 async function saveNotificationRule(monitorId) {
@@ -106,6 +110,57 @@ function resetActiveRule() {
     delayMinutes: 0,
     isOnlyBusinessHours: false,
   };
+}
+
+function ensureEscalationSteps(monitorId) {
+  if (!escalationStepsByMonitor.value[monitorId]) {
+    escalationStepsByMonitor.value[monitorId] = [];
+  }
+}
+
+function addLocalEscalationStep(monitorId = editingRuleMonitorId.value) {
+  if (monitorId === null) {
+    return;
+  }
+
+  ensureEscalationSteps(monitorId);
+  escalationStepsByMonitor.value[monitorId].push({
+    id: `step-${Date.now()}-${escalationStepSequence++}`,
+    channel: 'email',
+    escalateAfterMinutes: 0,
+  });
+}
+
+function sortedEscalationSteps(monitorId) {
+  return [...(escalationStepsByMonitor.value[monitorId] || [])].sort(
+    (firstStep, secondStep) => Number(firstStep.escalateAfterMinutes) - Number(secondStep.escalateAfterMinutes),
+  );
+}
+
+function removeLocalEscalationStep(monitorId, stepId) {
+  escalationStepsByMonitor.value[monitorId] = (escalationStepsByMonitor.value[monitorId] || []).filter(
+    (step) => step.id !== stepId,
+  );
+}
+
+async function saveEscalationSteps(monitorId) {
+  monitorError.value = '';
+  monitorFeedback.value = '';
+  isSavingEscalation.value = true;
+
+  try {
+    const steps = sortedEscalationSteps(monitorId).map((step) => ({
+      channel: step.channel,
+      escalateAfterMinutes: Number(step.escalateAfterMinutes) || 0,
+    }));
+
+    await saveMonitorEscalationSteps(monitorId, steps);
+    monitorFeedback.value = 'Escalation policy saved.';
+  } catch (exception) {
+    monitorError.value = exception.message;
+  } finally {
+    isSavingEscalation.value = false;
+  }
 }
 
 async function removeMonitor(id) {
@@ -258,6 +313,51 @@ onMounted(async () => {
                         {{ isSavingRule ? 'Saving...' : 'Save Rules' }}
                       </button>
                     </form>
+
+                    <section class="escalation-panel" aria-label="Escalation Policy Timeline">
+                      <div class="escalation-header">
+                        <div>
+                          <h3>&#128200; Escalation Policy Timeline</h3>
+                        </div>
+
+                        <button class="secondary-button compact-button" type="button" @click="addLocalEscalationStep(monitor.id)">
+                          + Add Step
+                        </button>
+                      </div>
+
+                      <form class="escalation-form" @submit.prevent="saveEscalationSteps(monitor.id)">
+                        <div v-if="sortedEscalationSteps(monitor.id).length" class="escalation-list">
+                          <div v-for="(step, index) in sortedEscalationSteps(monitor.id)" :key="step.id" class="escalation-step">
+                            <span class="step-index">Tier {{ index + 1 }}</span>
+
+                            <label class="step-field">
+                              <small>Channel</small>
+                              <select v-model="step.channel">
+                                <option value="slack">Slack</option>
+                                <option value="discord">Discord</option>
+                                <option value="email">Email</option>
+                                <option value="sms">SMS</option>
+                              </select>
+                            </label>
+
+                            <label class="step-field">
+                              <small>Escalate after minutes</small>
+                              <input v-model.number="step.escalateAfterMinutes" type="number" min="0" step="1" inputmode="numeric" />
+                            </label>
+
+                            <button class="danger-button compact-button" type="button" @click="removeLocalEscalationStep(monitor.id, step.id)">
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        <p v-else class="escalation-empty">No escalation steps configured.</p>
+
+                        <button class="primary-button compact-button escalation-save" type="submit" :disabled="isSavingEscalation">
+                          {{ isSavingEscalation ? 'Saving...' : 'Save Escalation Policy' }}
+                        </button>
+                      </form>
+                    </section>
                   </td>
                 </tr>
               </template>
@@ -352,6 +452,102 @@ onMounted(async () => {
   min-width: 0;
 }
 
+.escalation-panel {
+  display: grid;
+  gap: 14px;
+  margin: 0 16px 16px;
+  padding: 16px;
+  border: 1px solid #dce3e1;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.escalation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.escalation-header h3 {
+  margin: 0;
+  color: #17202a;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.escalation-form {
+  display: grid;
+  gap: 12px;
+}
+
+.escalation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.escalation-step {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 1fr) minmax(160px, 220px) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid #e1e7e5;
+  border-radius: 8px;
+  background: #f8fbfa;
+}
+
+.step-index {
+  align-self: center;
+  color: #b15831;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.step-field {
+  display: grid;
+  gap: 8px;
+}
+
+.step-field small {
+  color: #33404a;
+  font-weight: 700;
+}
+
+.step-field select,
+.step-field input {
+  width: 100%;
+  border: 1px solid #cbd6d3;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17202a;
+  padding: 10px 12px;
+  font: inherit;
+  outline: none;
+}
+
+.step-field select:focus,
+.step-field input:focus {
+  border-color: #116149;
+  box-shadow: 0 0 0 3px rgba(17, 97, 73, 0.15);
+}
+
+.escalation-empty {
+  border: 1px dashed #cbd6d3;
+  border-radius: 8px;
+  color: #56616b;
+  margin: 0;
+  padding: 14px;
+  text-align: center;
+}
+
+.escalation-save {
+  justify-self: end;
+}
+
 @media (max-width: 760px) {
   .monitor-url-row {
     grid-template-columns: 1fr;
@@ -364,6 +560,19 @@ onMounted(async () => {
 
   .rule-editor-form {
     grid-template-columns: 1fr;
+  }
+
+  .escalation-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .escalation-step {
+    grid-template-columns: 1fr;
+  }
+
+  .escalation-save {
+    justify-self: stretch;
   }
 }
 </style>

@@ -94,6 +94,15 @@ export function saveMonitorNotificationRule(monitorId, notificationRule) {
   });
 }
 
+export function saveMonitorEscalationSteps(monitorId, steps) {
+  return request(`/api/monitors/${monitorId}/escalation-steps`, {
+    method: 'POST',
+    body: JSON.stringify({
+      steps,
+    }),
+  });
+}
+
 export function deleteMonitor(id) {
   return request(`/api/monitors/${id}`, {
     method: 'DELETE',
