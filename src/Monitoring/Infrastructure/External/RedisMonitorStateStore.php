@@ -67,4 +67,10 @@ class RedisMonitorStateStore implements MonitorStateStoreInterface
         $data = json_decode($rawJson, true);
         return $data['incident_id'] ?? null;
     }
+    public function tryAcquireNotificationCooldown(int $monitorId, int $cooldownSeconds = 300): bool
+    {
+        $key = sprintf('monitor:%d:cooldown:notification', $monitorId);
+        return (bool) $this->redis->set($key, 'active', ['nx', 'ex' => $cooldownSeconds]);
+    }
+
 }

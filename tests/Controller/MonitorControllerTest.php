@@ -112,8 +112,6 @@ final class MonitorControllerTest extends WebTestCase
             //table already exists
         }
 
-
-
         $tenantA = $this->createTenant('Tenant A', 'a');
         $userA = $this->createUser('user@a.com', $tenantA);
         $monA = new Monitor('https://site-a.com', 60, $tenantA);
@@ -138,9 +136,6 @@ final class MonitorControllerTest extends WebTestCase
         $data = json_decode($response->getContent(), true);
         self::assertCount(1, $data);
         self::assertSame('https://site-a.com', $data[0]['url']);
-        // $data = json_decode($this->client->getResponse()->getContent(), true);
-        // self::assertCount(1, $data);
-        // self::assertSame('https://site-a.com', $data[0]['url']);
     }
 
     public function testDeleteUnauthorizedMonitorFails(): void
