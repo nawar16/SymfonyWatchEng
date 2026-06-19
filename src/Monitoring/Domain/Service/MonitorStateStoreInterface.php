@@ -12,5 +12,4 @@ interface MonitorStateStoreInterface
     public function getStatusSnapshot(int $id): ?array;
     public function hasActiveIncident(int $id): bool;
     public function getActiveIncidentId(int $monitorId): ?int;
-    public function tryAcquireNotificationCooldown(int $monitorId, int $cooldownSeconds): bool;
 }

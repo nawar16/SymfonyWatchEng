@@ -6,6 +6,8 @@ use App\Monitoring\Domain\Service\NotificationSenderInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Predis\Client as Redis;
+
 
 class SymfonyNotificationSender implements NotificationSenderInterface
 {
@@ -14,7 +16,8 @@ class SymfonyNotificationSender implements NotificationSenderInterface
         private MailerInterface $mailer,
         private string $discordWebhookUrl,
         private string $slackWebhookUrl,
-        private string $adminEmailAddress
+        private string $adminEmailAddress,
+        private Redis $redis
     ) {} 
 
     public function sendIncidentAlert(int $incidentId, int $monitorId, string $message): void
@@ -86,6 +89,12 @@ class SymfonyNotificationSender implements NotificationSenderInterface
                 'json' => ['content' => $text]
             ]);
         } catch (\Exception $e) {}
+    }
+
+    public function tryAcquireNotificationCooldown(int $monitorId, int $cooldownSeconds = 300): bool
+    {
+        $key = sprintf('monitor:%d:cooldown:notification', $monitorId);
+        return (bool) $this->redis->set($key, 'active', ['nx', 'ex' => $cooldownSeconds]);
     }
 
 }
