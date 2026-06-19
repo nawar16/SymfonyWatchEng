@@ -25,7 +25,9 @@ class NotificationHandler
     public function onIncidentCreated(IncidentCreatedEvent $event): void
     {
         $monitorId = $event->monitorId;
-        //TODO: implement the cooldown protection here
+        if (!$this->notificationSender->tryAcquireNotificationCooldown($monitorId)) {
+            return; 
+        }
         $rule = $this->entityManager->getRepository(NotificationRule::class)
             ->findOneBy(['monitorId' => $monitorId]);
             
