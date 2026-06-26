@@ -142,4 +142,33 @@ class CheckMonitorHandlerTest extends KernelTestCase
         self::assertCount(1, $healthChecks);
         self::assertFalse($healthChecks[0]->isSuccess());
     }
+    public function testFailedPingRegistersExactlyOneSignalWithoutRetryInterference(): void
+    {
+        $tenant = (new Tenant())->setName('Acme')->setSubdomain('acme');
+        $this->entityManager->persist($tenant);
+        
+        $monitor = new Monitor('https://failing-target.local', 60, $tenant);
+        $this->entityManager->persist($monitor);
+        $this->entityManager->flush();
+    
+        $this->pingServiceMock->expects($this->once()) 
+            ->method('ping')
+            ->willReturn([
+                'status_code' => 502,
+                'response_time' => 90,
+                'success' => false
+            ]);
+        $this->stateStoreMock->expects($this->once())
+            ->method('incrementFailures')
+            ->with($monitor->getId())
+            ->willReturn(1);
+        $command = new CheckMonitorCommand($monitor->getId());
+        ($this->handler)($command);
+    
+
+        $healthChecks = $this->entityManager->getRepository(HealthCheck::class)->findAll();
+        self::assertCount(1, $healthChecks);
+        self::assertFalse($healthChecks[0]->isSuccess());
+    }
+
 }
