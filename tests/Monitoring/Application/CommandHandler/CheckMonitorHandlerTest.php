@@ -154,9 +154,12 @@ class CheckMonitorHandlerTest extends KernelTestCase
         $this->entityManager->persist($monitor);
         $this->entityManager->flush();
 
-        $this->tenantContextMock->method('getCurrentTenant')
-        ->willReturn($tenant);
+        $this->tenantContextMock->expects($this->any())
+            ->method('getCurrentTenant')
+            ->willReturn($tenant);
         
+        self::getContainer()->set(TenantContext::class, $this->tenantContextMock);
+        $this->handler = self::getContainer()->get(CheckMonitorHandler::class);
         $this->pingServiceMock->expects($this->once()) 
             ->method('ping')
             ->willReturn([
@@ -177,7 +180,6 @@ class CheckMonitorHandlerTest extends KernelTestCase
             ->method('incrementFailures')
             ->with($monitor->getId())
             ->willReturn(1); 
-    
 
         $command = new CheckMonitorCommand($monitor->getId());
         ($this->handler)($command);
@@ -190,4 +192,5 @@ class CheckMonitorHandlerTest extends KernelTestCase
         self::assertSame(90, $check->getResponseTimeMs());
         self::assertFalse($check->isSuccess());
     }
+
 }
