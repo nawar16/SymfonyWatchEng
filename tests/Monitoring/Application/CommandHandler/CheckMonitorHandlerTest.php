@@ -11,6 +11,7 @@ use App\Monitoring\Application\CommandHandler\CheckMonitorHandler;
 use App\Monitoring\Infrastructure\Doctrine\Repository\HealthCheckRepository;
 use App\Monitoring\Infrastructure\Doctrine\Repository\MonitorRepository;
 use App\Monitoring\Infrastructure\Service\IncidentEngine;
+use App\Tenancy\Application\TenantContext;
 use App\Tenancy\Domain\Entity\Tenant;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -27,6 +28,8 @@ class CheckMonitorHandlerTest extends KernelTestCase
     private $stateStoreMock;
     /** @var \PHPUnit\Framework\MockObject\MockObject&IncidentEngine */
     private IncidentEngine $incidentEngineMock;
+    /** @var \PHPUnit\Framework\MockObject\MockObject&TenantContext */
+    private TenantContext $tenantContextMock;
 
     protected function setUp(): void
     {
@@ -44,7 +47,8 @@ class CheckMonitorHandlerTest extends KernelTestCase
         $this->pingServiceMock = $this->createMock(PingServiceInterface::class);
         $this->stateStoreMock = $this->createMock(MonitorStateStoreInterface::class);
         $this->incidentEngineMock = $this->createMock(IncidentEngine::class);
-        
+        $this->tenantContextMock = $this->createMock(TenantContext::class);        
+
         $this->handler = new CheckMonitorHandler(
           //  $this->entityManager->getRepository(Monitor::class),
             $container->get(MonitorRepository::class),
@@ -145,12 +149,14 @@ class CheckMonitorHandlerTest extends KernelTestCase
     public function testFailedPingRegistersExactlyOneSignalWithoutRetryInterference(): void
     {
         $tenant = (new Tenant())->setName('Acme')->setSubdomain('acme');
-        $this->entityManager->persist($tenant);
-        
+        $this->entityManager->persist($tenant);   
         $monitor = new Monitor('https://failing-target.local', 60, $tenant);
         $this->entityManager->persist($monitor);
         $this->entityManager->flush();
-    
+
+        $this->tenantContextMock->method('getCurrentTenant')
+        ->willReturn($tenant);
+        
         $this->pingServiceMock->expects($this->once()) 
             ->method('ping')
             ->willReturn([
@@ -158,17 +164,30 @@ class CheckMonitorHandlerTest extends KernelTestCase
                 'response_time' => 90,
                 'success' => false
             ]);
+        $this->stateStoreMock->method('getStatusSnapshot')
+            ->with($monitor->getId())
+            ->willReturn(null);
+        $this->stateStoreMock->method('hasActiveIncident')
+            ->with($monitor->getId())
+            ->willReturn(false);
+        $this->stateStoreMock->expects($this->once())
+            ->method('updateStatus')
+            ->with($monitor->getId(), 'DOWN', 90, 502);
         $this->stateStoreMock->expects($this->once())
             ->method('incrementFailures')
             ->with($monitor->getId())
-            ->willReturn(1);
-        $command = new CheckMonitorCommand($monitor->getId());
-        ($this->handler)($command);
+            ->willReturn(1); 
     
 
+        $command = new CheckMonitorCommand($monitor->getId());
+        ($this->handler)($command);
         $healthChecks = $this->entityManager->getRepository(HealthCheck::class)->findAll();
         self::assertCount(1, $healthChecks);
-        self::assertFalse($healthChecks[0]->isSuccess());
+        
+        /** @var HealthCheck $check */
+        $check = $healthChecks[0];
+        self::assertSame(502, $check->getStatusCode());
+        self::assertSame(90, $check->getResponseTimeMs());
+        self::assertFalse($check->isSuccess());
     }
-
 }
