@@ -158,8 +158,6 @@ class CheckMonitorHandlerTest extends KernelTestCase
             ->method('getCurrentTenant')
             ->willReturn($tenant);
         
-        self::getContainer()->set(TenantContext::class, $this->tenantContextMock);
-        $this->handler = self::getContainer()->get(CheckMonitorHandler::class);
         $this->pingServiceMock->expects($this->once()) 
             ->method('ping')
             ->willReturn([
@@ -167,6 +165,13 @@ class CheckMonitorHandlerTest extends KernelTestCase
                 'response_time' => 90,
                 'success' => false
             ]);
+
+        self::getContainer()->set(TenantContext::class, $this->tenantContextMock);
+        self::getContainer()->set(PingServiceInterface::class, $this->pingServiceMock);
+        self::getContainer()->set(MonitorStateStoreInterface::class, $this->stateStoreMock);
+
+        $this->handler = self::getContainer()->get(CheckMonitorHandler::class);
+
         $this->stateStoreMock->method('getStatusSnapshot')
             ->with($monitor->getId())
             ->willReturn(null);
